@@ -6,15 +6,15 @@ package piece;
 
 import main.GamePanel;
 
-public class Pawn extends Piece{
-    public Pawn(int color, int col, int row){
+public class Knight extends Piece{
+       public Knight(int color, int col, int row){
         super(color, col, row);
         
         if(color == GamePanel.WHITE){
-            image = getImage("w-pawn");
+            image = getImage("w-knight");
         }
         else{
-            image = getImage("b-pawn");
+            image = getImage("b-knight");
         }
     }
 }

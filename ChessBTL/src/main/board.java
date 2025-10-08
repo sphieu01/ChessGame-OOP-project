@@ -15,7 +15,7 @@ public class board {
     
     public void draw(Graphics2D g2){
         
-        int c = 0;
+        int c = 0; //mau sac moi o
         
         for(int row = 0; row < MAX_ROW; row++){
             
