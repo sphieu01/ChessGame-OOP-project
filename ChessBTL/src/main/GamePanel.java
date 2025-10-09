@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package main;
 
 import java.awt.*;
@@ -20,10 +17,12 @@ public class GamePanel extends JPanel implements Runnable{
     final int FPS = 60;
     Thread gameThread; // da luong
     board Board = new board();
+    Mouse mouse = new Mouse();
     
     //Pieces
     public static ArrayList<Piece> pieces = new ArrayList<>();
     public static ArrayList<Piece> simPieces = new ArrayList<>();
+    Piece activeP;
     
     //Color
     public static final int WHITE = 0;
@@ -38,6 +37,8 @@ public class GamePanel extends JPanel implements Runnable{
     public GamePanel(){
         setPreferredSize(new Dimension(WIDTH,HEIGHT)); //same as setSize() but got layout manager
         setBackground(Color.black);
+        addMouseMotionListener(mouse); //gọi đến các phương thức để cập nhập tòa đọ hiện 
+        addMouseListener(mouse); //gọi đến các phương thức nhấp và nhả chuột
         
         setPieces();
         copyPieces(pieces, simPieces);
@@ -117,8 +118,43 @@ public class GamePanel extends JPanel implements Runnable{
     
     
     private void update(){
+        // Mouse Button Pressed // hay noi cach khac khi nhap chuot vao
+        if(mouse.pressed){
+            if(activeP == null){
+                //if activeP is null, check if you can pick a piece
+                for(Piece piece: simPieces){
+                    // neu mouse 
+                    if(piece.color == currentColor && 
+                            piece.col == mouse.x/board.SQUARE_SIZE &&
+                            piece.row == mouse.y/board.SQUARE_SIZE){
+
+                        activeP = piece;
+                    }
+                }
+            }
+            else {
+                // neu nguoi choi dang giu 1 quan co, co the mo phong the move
+                simulate();
+            }
+        }
+        /// Mouse button released /// hay noi cach kahc la khi tha chuot
+        if(mouse.pressed == false){
+            if(activeP != null){
+                activeP.updatePosition();
+                activeP = null;
+            }
+        }
+    }
+    private void simulate(){ // thinking phase
+        
+        // if a piece is being held, update its position
+        activeP.x = mouse.x - board.HALF_SQUARE_SIZE;
+        activeP.y = mouse.y - board.HALF_SQUARE_SIZE;
+        activeP.col = activeP.getCol(activeP.x);
+        activeP.row = activeP.getRow(activeP.y);
         
     }
+     
     public void paintComponent(Graphics g){ //draw objeccts on panel
         super.paintComponent(g);
         
@@ -129,6 +165,18 @@ public class GamePanel extends JPanel implements Runnable{
         //Pieces
         for(Piece p : simPieces){
             p.draw(g2);
+        }
+        
+        if(activeP != null) {
+            g2.setColor(Color.white);
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+            g2.fillRect(activeP.col * board.SQUARE_SIZE, activeP.row * board.SQUARE_SIZE, 
+                    board.SQUARE_SIZE, board.SQUARE_SIZE);
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+            
+            //Draw the active piece in the end so it won't be hidden by the board or the colored sqare;
+            activeP.draw(g2);
+            
         }
     }
 }
