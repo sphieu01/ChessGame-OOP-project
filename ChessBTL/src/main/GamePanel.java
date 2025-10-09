@@ -30,6 +30,11 @@ public class GamePanel extends JPanel implements Runnable{
     public static final int BLACK = 1;
     int currentColor = WHITE;
     
+    //Booleans
+    boolean canMove;
+    boolean validSquare;
+    
+    
     public GamePanel(){
         setPreferredSize(new Dimension(WIDTH,HEIGHT)); //same as setSize() but got layout manager
         setBackground(Color.black);
