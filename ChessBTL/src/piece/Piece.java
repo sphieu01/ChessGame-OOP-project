@@ -16,7 +16,7 @@ public class Piece {
     public int col, row, preCol, preRow;
     public int color;
     
-    public Piece(int color, int col, int row){
+    public Piece(int color, int col, int row){ //khoi tao o co
         this.color = color;
         this.col = col;
         this.row = row;
@@ -26,7 +26,7 @@ public class Piece {
         preRow = row;
     }
     
-    public BufferedImage getImage(String imagePath){
+    public BufferedImage getImage(String imagePath){ //doc hinh anh tu source folder
         BufferedImage image = null;
         
         try{
