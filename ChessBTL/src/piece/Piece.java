@@ -56,12 +56,29 @@ public class Piece {
         return (y + board.HALF_SQUARE_SIZE) / board.SQUARE_SIZE;
     }
     
+    public int getIndex() {
+        for (int index = 0; index < GamePanel.simPieces.size(); index++) {
+            if (GamePanel.simPieces.get(index) == this) {
+                return index;
+            }
+        }
+        return 0;
+    }
+
     public void updatePosition(){
         
         x = getX(col);
         y = getY(row);
         preCol = getCol(x);
         preRow = getRow(y);
+        moved = true;
+    }
+    
+    public void resetPosition() {
+        col = preCol;
+        row = preRow;
+        x = getX(col);
+        y = getY(row);
     }
     
     public boolean canMove(int targetCol, int targetRow){
