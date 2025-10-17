@@ -149,7 +149,7 @@ public class GamePanel extends JPanel implements Runnable{
                 }
                 else {
                     // The move is not valid so reset everything
-                    copyPieces(simPieces, pieces);
+                    copyPieces(pieces, simPieces);
                     activeP.resetPosition();
                     activeP = null;
                 }
