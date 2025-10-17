@@ -170,45 +170,46 @@ public class Piece {
     
     public boolean pieceIsOnDiagonalLine(int targetCol, int targetRow) {
 
-        // Đi lên trên (targetRow < preRow)
         if (targetRow < preRow) {
-
-            // Lên trái
-            for (int c = preCol - 1, r = preRow - 1; c > targetCol && r > targetRow; c--, r--) {
+            // Up left
+            for (int c = preCol - 1; c > targetCol; c--) {
+                int diff = Math.abs(c - preCol);
                 for (Piece piece : GamePanel.simPieces) {
-                    if (piece.col == c && piece.row == r) {
+                    if (piece.col == c && piece.row == preRow - diff) {
                         hittingP = piece;
                         return true;
                     }
                 }
             }
 
-            // Lên phải
-            for (int c = preCol + 1, r = preRow - 1; c < targetCol && r > targetRow; c++, r--) {
+            // Up right
+            for (int c = preCol + 1; c < targetCol; c++) {
+                int diff = Math.abs(c - preCol);
                 for (Piece piece : GamePanel.simPieces) {
-                    if (piece.col == c && piece.row == r) {
+                    if (piece.col == c && piece.row == preRow - diff) {
                         hittingP = piece;
                         return true;
                     }
                 }
             }
-        } // Đi xuống (targetRow > preRow)
-        else if (targetRow > preRow) {
-
-            // Xuống trái
-            for (int c = preCol - 1, r = preRow + 1; c > targetCol && r < targetRow; c--, r++) {
+        }
+        if (targetRow > preRow) {
+            // Down left
+            for (int c = preCol - 1; c > targetCol; c--) {
+                int diff = Math.abs(c - preCol);
                 for (Piece piece : GamePanel.simPieces) {
-                    if (piece.col == c && piece.row == r) {
+                    if (piece.col == c && piece.row == preRow + diff) {
                         hittingP = piece;
                         return true;
                     }
                 }
             }
 
-            // Xuống phải
-            for (int c = preCol + 1, r = preRow + 1; c < targetCol && r < targetRow; c++, r++) {
+            // Down right
+            for (int c = preCol + 1; c < targetCol; c++) {
+                int diff = Math.abs(c - preCol);
                 for (Piece piece : GamePanel.simPieces) {
-                    if (piece.col == c && piece.row == r) {
+                    if (piece.col == c && piece.row == preRow + diff) {
                         hittingP = piece;
                         return true;
                     }
@@ -216,8 +217,10 @@ public class Piece {
             }
         }
 
+
         return false;
     }
+    
     public void draw(Graphics2D g2){
         g2.drawImage(image, x, y, board.SQUARE_SIZE, board.SQUARE_SIZE, null);
     }
