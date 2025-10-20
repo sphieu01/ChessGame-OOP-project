@@ -22,20 +22,30 @@ public class GamePanel extends JPanel implements Runnable{
     //Pieces
     public static ArrayList<Piece> pieces = new ArrayList<>();
     public static ArrayList<Piece> simPieces = new ArrayList<>();
+    ArrayList<Piece> promoPieces = new ArrayList<>();
     Piece activeP;
+    public static Piece castlingP;
     
     //Color
     public static final int WHITE = 0;
     public static final int BLACK = 1;
     int currentColor = WHITE;
     
+    //BOOLEANS
+    boolean canMove;
+    boolean validSquare;
+    boolean promotion;
+    
     public GamePanel(){
         setPreferredSize(new Dimension(WIDTH,HEIGHT)); //same as setSize() but got layout manager
-        setBackground(Color.black);
+        //setBackground(Color.black);
+        setBackground(new Color(45, 40, 35));
         addMouseMotionListener(mouse); //gọi đến các phương thức để cập nhập tòa đọ hiện 
         addMouseListener(mouse); //gọi đến các phương thức nhấp và nhả chuột
         
-        setPieces();
+        //setPieces();
+        //testPromotion();
+        testIllegal();
         copyPieces(pieces, simPieces);
     }
     
@@ -82,6 +92,18 @@ public class GamePanel extends JPanel implements Runnable{
         pieces.add(new King(BLACK, 4 , 0));
         pieces.add(new Queen(BLACK, 3 , 0));
     }
+    
+    public void testPromotion(){ // chi dung de test code promotion
+        pieces.add(new Pawn(WHITE, 0 , 4));
+        pieces.add(new Pawn(BLACK, 5, 5));
+    }
+    public void testIllegal(){ // chi dung de test code check vua
+        pieces.add(new Queen(WHITE, 0 , 4));
+        pieces.add(new Rook(BLACK, 1, 4));
+        pieces.add(new Pawn(WHITE, 7, 6));
+        pieces.add(new King(WHITE, 0, 3));
+        pieces.add(new King(BLACK, 3, 7));
+    }
     private void copyPieces(ArrayList<Piece> source, ArrayList<Piece> target){
         
         target.clear();
@@ -113,34 +135,79 @@ public class GamePanel extends JPanel implements Runnable{
     
     
     private void update(){
-        // Mouse Button Pressed // hay noi cach khac khi nhap chuot vao
-        if(mouse.pressed){
-            if(activeP == null){
-                //if activeP is null, check if you can pick a piece
-                for(Piece piece: simPieces){
-                    // neu mouse 
-                    if(piece.color == currentColor && 
-                            piece.col == mouse.x/board.SQUARE_SIZE &&
-                            piece.row == mouse.y/board.SQUARE_SIZE){
+        
+        if(promotion) { // kiem tra xem co phai phong tot khong
+            promoting();
+        }
+        else {
+            // Mouse Button Pressed // hay noi cach khac khi nhap chuot vao
+            if(mouse.pressed){
+                if(activeP == null){
+                    //if activeP is null, check if you can pick a piece
+                    for(Piece piece: simPieces){
+                        // neu mouse 
+                        if(piece.color == currentColor && 
+                                piece.col == mouse.x/board.SQUARE_SIZE &&
+                                piece.row == mouse.y/board.SQUARE_SIZE){
 
-                        activeP = piece;
+                            activeP = piece;
+                        }
+                    }
+                }
+                else {
+                    // neu nguoi choi dang giu 1 quan co, co the mo phong the move
+                    simulate();
+                }
+            }
+            /// Mouse button released /// hay noi cach kahc la khi tha chuot
+            if(mouse.pressed == false){
+
+                if(activeP != null){
+
+                    if(validSquare) {
+
+                    //MOVE CONFIRMED (day la buoc danh quan co)
+
+                    //cap nhap lai list trong truong hop xoa bo 1 quan co
+                        copyPieces(simPieces, pieces);
+                        activeP.updatePosition();
+                        if(castlingP != null){
+                            castlingP.updatePosition();
+                        }
+
+                        if(canPromote()){
+                            promotion = true;
+                        }
+                        else{
+                            changePlayer();
+                        }
+                    }
+                    else {
+                        // muon quay lai
+                        copyPieces(pieces, simPieces);
+                        activeP.resetPosition();
+                        activeP = null;
                     }
                 }
             }
-            else {
-                // neu nguoi choi dang giu 1 quan co, co the mo phong the move
-                simulate();
-            }
-        }
-        /// Mouse button released /// hay noi cach kahc la khi tha chuot
-        if(mouse.pressed == false){
-            if(activeP != null){
-                activeP.updatePosition();
-                activeP = null;
-            }
         }
     }
-    private void simulate(){ // thinking phase
+    private void simulate(){ // thinking phase : người chơi đang drag quân cờ 
+        
+        canMove = false;
+        validSquare = false;
+        
+        
+        //Reset the piece list in every loop
+        // This is basically for restoring the removed piece during the simulation
+        copyPieces(pieces, simPieces);
+        
+        //Reset the castling piece's position
+        if(castlingP != null) {
+            castlingP.col = castlingP.preCol;
+            castlingP.x = castlingP.getX(castlingP.col);
+            castlingP = null;
+        }
         
         // if a piece is being held, update its position
         activeP.x = mouse.x - board.HALF_SQUARE_SIZE;
@@ -148,8 +215,104 @@ public class GamePanel extends JPanel implements Runnable{
         activeP.col = activeP.getCol(activeP.x);
         activeP.row = activeP.getRow(activeP.y);
         
+        // check if the piece is hovering over a reachable sqare
+        if(activeP.canMove(activeP.col,activeP.row)){
+            canMove = true;
+            // gap phai quan co khac mau, loai khoi danh sach
+            if(activeP.hittingP != null){
+                simPieces.remove(activeP.hittingP.getIndex());
+            }
+            
+            checkCastling(); // ham goi den de kiem tra nhap thanh duoc khong
+            
+            if(isIllegal(activeP) == false){
+                validSquare = true;
+            }
+        }
     }
-     
+    
+    private boolean isIllegal(Piece king) {
+        if(king.type == Type.KING){
+            for(Piece piece: simPieces){
+                if(piece != king && piece.color != king.color && piece.canMove(king.col, king.row)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    private void checkCastling(){
+        if(castlingP != null) {
+            if(castlingP.col == 0){
+                castlingP.col += 3;
+            }
+            else if(castlingP.col == 7){
+                castlingP.col -= 2;
+            }
+            castlingP.x = castlingP.getX(castlingP.col);
+        }
+    }
+    
+    private void changePlayer(){
+       
+        if(currentColor == WHITE){
+            currentColor = BLACK;
+            //Reset black's two stepped status
+            for(Piece piece : pieces){
+                if(piece.color == BLACK){
+                    piece.twoStepped = false;
+                }
+            }          
+        }
+        else{
+            currentColor = WHITE;
+             //Reset white's two stepped status
+            for(Piece piece : pieces){
+                if(piece.color == WHITE){
+                    piece.twoStepped = false;
+                }
+            }
+        }
+        activeP = null;
+    }
+    
+    public boolean canPromote(){
+        
+        if(activeP.type == Type.PAWN){
+            if(currentColor == WHITE && activeP.row == 0 || currentColor == BLACK && activeP.row == 7){
+                promoPieces.clear();
+                promoPieces.add(new Rook(currentColor, 9 , 2));
+                promoPieces.add(new Knight(currentColor, 9 , 3));
+                promoPieces.add(new Bishop(currentColor, 9 , 4));
+                promoPieces.add(new Queen(currentColor, 9 , 5));
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private void promoting(){
+        if(mouse.pressed){
+            for(Piece piece : promoPieces){
+                if(piece.col == mouse.x / Board.SQUARE_SIZE && piece.row == mouse.y / Board.SQUARE_SIZE){
+                    switch(piece.type) {
+                        case ROOK: simPieces.add(new Rook(currentColor, activeP.col, activeP.row)); break;
+                        case KNIGHT: simPieces.add(new Knight(currentColor, activeP.col, activeP.row)); break;
+                        case BISHOP: simPieces.add(new Bishop(currentColor, activeP.col, activeP.row)); break;
+                        case QUEEN: simPieces.add(new Queen(currentColor, activeP.col, activeP.row)); break;
+                        default: break;
+                    }
+                    simPieces.remove(activeP.getIndex());
+                    copyPieces(simPieces, pieces);
+                    activeP = null;
+                    promotion = false;
+                    changePlayer();
+                }
+            }
+        }
+    }
+    
     public void paintComponent(Graphics g){ //draw objeccts on panel
         super.paintComponent(g);
         
@@ -163,15 +326,62 @@ public class GamePanel extends JPanel implements Runnable{
         }
         
         if(activeP != null) {
-            g2.setColor(Color.white);
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-            g2.fillRect(activeP.col * board.SQUARE_SIZE, activeP.row * board.SQUARE_SIZE, 
-                    board.SQUARE_SIZE, board.SQUARE_SIZE);
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
-            
+            if(canMove) {
+                if(isIllegal(activeP)){
+                    g2.setColor(Color.white);
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+                    g2.fillRect(activeP.col * board.SQUARE_SIZE, activeP.row * board.SQUARE_SIZE, 
+                            board.SQUARE_SIZE, board.SQUARE_SIZE);
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+                }
+            }
             //Draw the active piece in the end so it won't be hidden by the board or the colored sqare;
             activeP.draw(g2);
             
         }
+        
+        //Status Messages
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2.setFont(new Font("Book Antiqua", Font.PLAIN, 40));
+        g2.setColor(Color.white);
+        
+        if(promotion){
+            g2.drawString("Promote to:", 840 , 150);
+            for(Piece piece: promoPieces){
+                g2.drawImage(piece.image, piece.getX(piece.col), piece.getY(piece.row),
+                    Board.SQUARE_SIZE, Board.SQUARE_SIZE, null);
+            }
+        }
+        else{
+            if(currentColor == WHITE){
+                g2.drawString("White's turn", 840, 550);
+            }
+            else{
+                g2.drawString("Black's turn", 840, 250);
+            }
+        }
+        //Status Messages
+//        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+//        g2.setFont(new Font("Book Antiqua", Font.BOLD, 40));
+//
+//        String msg = (currentColor == WHITE) ? "White's Turn" : "Black's Turn";
+//        Color bgColor = new Color(0, 0, 0, 120); // nền đen trong suốt
+//        Color textColor = (currentColor == WHITE) ? new Color(255, 255, 255) : new Color(255, 220, 150);
+//
+//        int x = 830, y = (currentColor == WHITE) ? 550 : 250;
+
+        // Lấy kích thước text để vẽ nền
+//        FontMetrics fm = g2.getFontMetrics();
+//        int textWidth = fm.stringWidth(msg);
+//        int textHeight = fm.getHeight();
+
+        // Vẽ nền bo tròn
+//        g2.setColor(bgColor);
+//        g2.fillRoundRect(x - 20, y - textHeight + 10, textWidth + 40, textHeight + 20, 30, 30);
+
+        // Vẽ chữ
+//        g2.setColor(textColor);
+//        g2.drawString(msg, x, y);
+
     }
 }
