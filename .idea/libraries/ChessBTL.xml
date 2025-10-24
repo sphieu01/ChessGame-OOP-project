@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="ChessBTL">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/ChessBTL/dist/ChessBTL.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
