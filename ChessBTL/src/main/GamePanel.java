@@ -151,7 +151,8 @@ public class GamePanel extends JPanel implements Runnable{
                     if(castlingP != null){
                         castlingP.updatePosition();
                     }
-                    
+
+                  
                     changePlayer();
                 }
                 else {
@@ -197,6 +198,7 @@ public class GamePanel extends JPanel implements Runnable{
         
     }
 
+
     private void checkCastling(){
         if(castlingP != null){
             if(castlingP.col == 0){
@@ -208,6 +210,8 @@ public class GamePanel extends JPanel implements Runnable{
             castlingP.x = castlingP.getX(castlingP.col);
         }
     }
+
+    
     private void changePlayer() {
         if(currentColor == WHITE) {
             currentColor = BLACK;
