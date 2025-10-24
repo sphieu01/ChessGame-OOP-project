@@ -8,17 +8,11 @@ import javax.swing.JFrame;
 
 public class Main {
     public static void main(String[] args) {
-        JFrame window = new JFrame("Simple Chess");
-        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        window.setResizable(false); //co dinh kich thuoc(rong,cao)
-        
-        GamePanel gp = new GamePanel();
-        window.add(gp);
-        window.pack();// tu dieu chinh kich thuoc cua so
-        
-        window.setLocationRelativeTo(null); // can giua
-        window.setVisible(true);
-        
-        gp.lauchGame();
+        // SwingUtilities.invokeLater đảm bảo rằng toàn bộ giao diện Swing
+        // được tạo và hiển thị trong Event Dispatch Thread (EDT) — 
+        // luồng chuyên xử lý các sự kiện giao diện, giúp chương trình mượt và ổn định.
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            new MenuFrame().setVisible(true);
+        });      
     }
 }
