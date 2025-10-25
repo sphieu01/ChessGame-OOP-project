@@ -32,17 +32,25 @@ public class Piece {
         preRow = row;
     }
     
-    public BufferedImage getImage(String imagePath){ //doc hinh anh tu source folder
-        BufferedImage image = null;
-        
-        try{
-            image = ImageIO.read(getClass().getResourceAsStream("/pieces/" + imagePath + ".png")); //khac 1 chut so voi yt
+    public BufferedImage getImage(String imagePath) {
+        try {
+            BufferedImage original = ImageIO.read(getClass().getResourceAsStream("/pieces/" + imagePath + ".png"));
+            BufferedImage resized = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = resized.createGraphics();
+
+            int size = 80; // quan co nho di con 80px
+            int offset = (100 - size) / 2; // center
+
+            g.drawImage(original, offset, offset, size, size, null);
+            g.dispose();
+            return resized;
+        } catch (Exception e) {
+            throw new RuntimeException("Không thể đọc ảnh: " + imagePath, e);
         }
-        catch(IOException e){
-            e.printStackTrace();
-        }
-        return image;
     }
+    
+    
+
     
     public int getX(int col){
         return col * board.SQUARE_SIZE;

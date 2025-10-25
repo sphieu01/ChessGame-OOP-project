@@ -22,12 +22,12 @@ public class board {
             for(int col = 0; col < MAX_COL; col++){
                 
                 if(c == 0){
-                    g2.setColor(new Color(210, 165, 125));
+                    g2.setColor(new Color(118, 150, 83));
                     c = 1;
                 }
                 
                 else{
-                    g2.setColor(new Color(175,115,70));
+                    g2.setColor(new Color(239, 240, 209));
                     c = 0;
                 }
                 
