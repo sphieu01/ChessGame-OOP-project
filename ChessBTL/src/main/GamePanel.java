@@ -1,4 +1,3 @@
-
 package main;
 
 import java.awt.*;
@@ -9,6 +8,9 @@ import java.util.*;
 import java.io.*;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.JButton;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import piece.Pawn;
 import piece.*;
 
@@ -20,6 +22,7 @@ public class GamePanel extends JPanel implements Runnable{
     Thread gameThread; // da luong
     board Board = new board();
     Mouse mouse = new Mouse();
+    JButton playAgainButton;
     
     //Pieces
     public static ArrayList<Piece> pieces = new ArrayList<>();
@@ -45,8 +48,29 @@ public class GamePanel extends JPanel implements Runnable{
     public GamePanel(){
         setPreferredSize(new Dimension(WIDTH,HEIGHT)); //same as setSize() but got layout manager
         setBackground(Color.black);
+        setLayout(null); // Sử dụng absolute layout để đặt button chính xác
         addMouseMotionListener(mouse); //gọi đến các phương thức để cập nhập tòa đọ hiện 
         addMouseListener(mouse); //gọi đến các phương thức nhấp và nhả chuột
+        
+        // Tạo button Play Again
+        playAgainButton = new JButton("Play Again");
+        playAgainButton.setBounds(840, 600, 200, 60); // Tăng kích thước button
+        playAgainButton.setFont(new Font("Arial", Font.BOLD, 20)); // Tăng kích thước font
+        playAgainButton.setBackground(new Color(70, 130, 180));
+        playAgainButton.setForeground(Color.WHITE);
+        playAgainButton.setFocusPainted(false);
+        playAgainButton.setBorderPainted(false);
+        
+        // Thêm ActionListener
+        playAgainButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                resetGame();
+                lauchGame();
+            }
+        });
+        
+        add(playAgainButton);
         
         setPieces();
 //        testPromotion();
@@ -638,7 +662,8 @@ public class GamePanel extends JPanel implements Runnable{
             ChessMainWindow parent = (ChessMainWindow) SwingUtilities.getWindowAncestor(this);
 
             if (choice == JOptionPane.YES_OPTION) {
-                parent.playAgain();
+                resetGame();
+                lauchGame();
             } else {
                 parent.backToMenu();
             }
