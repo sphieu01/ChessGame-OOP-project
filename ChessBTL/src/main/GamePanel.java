@@ -52,16 +52,14 @@ public class GamePanel extends JPanel implements Runnable{
         addMouseMotionListener(mouse); //gọi đến các phương thức để cập nhập tòa đọ hiện 
         addMouseListener(mouse); //gọi đến các phương thức nhấp và nhả chuột
         
-        // Tạo button Play Again
         playAgainButton = new JButton("Play Again");
-        playAgainButton.setBounds(840, 600, 200, 60); // Tăng kích thước button
-        playAgainButton.setFont(new Font("Arial", Font.BOLD, 20)); // Tăng kích thước font
+        playAgainButton.setBounds(840, 720, 200, 60); 
+        playAgainButton.setFont(new Font("Arial", Font.BOLD, 20)); 
         playAgainButton.setBackground(new Color(70, 130, 180));
         playAgainButton.setForeground(Color.WHITE);
         playAgainButton.setFocusPainted(false);
         playAgainButton.setBorderPainted(false);
         
-        // Thêm ActionListener
         playAgainButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
