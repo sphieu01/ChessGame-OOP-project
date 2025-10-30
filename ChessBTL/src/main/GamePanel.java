@@ -1,5 +1,6 @@
 package main;
 
+import database.DatabaseManager;
 import java.awt.*;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -23,6 +24,7 @@ public class GamePanel extends JPanel implements Runnable{
     board Board = new board();
     Mouse mouse = new Mouse();
     JButton playAgainButton;
+    JButton backToMenuButton;
     
     //Pieces
     public static ArrayList<Piece> pieces = new ArrayList<>();
@@ -45,6 +47,9 @@ public class GamePanel extends JPanel implements Runnable{
     boolean gameover;
     boolean stalemate;
     
+    //db
+    DatabaseManager dbManager = new DatabaseManager();
+    
     public GamePanel(){
         setPreferredSize(new Dimension(WIDTH,HEIGHT)); //same as setSize() but got layout manager
         setBackground(Color.black);
@@ -53,7 +58,7 @@ public class GamePanel extends JPanel implements Runnable{
         addMouseListener(mouse); //gọi đến các phương thức nhấp và nhả chuột
         
         playAgainButton = new JButton("Play Again");
-        playAgainButton.setBounds(840, 720, 200, 60); 
+        playAgainButton.setBounds(840, 720, 200, 50); 
         playAgainButton.setFont(new Font("Arial", Font.BOLD, 20)); 
         playAgainButton.setBackground(new Color(70, 130, 180));
         playAgainButton.setForeground(Color.WHITE);
@@ -70,6 +75,29 @@ public class GamePanel extends JPanel implements Runnable{
         
         add(playAgainButton);
         
+        backToMenuButton = new JButton("Menu");
+        backToMenuButton.setBounds(840, 5, 100, 50);
+        backToMenuButton.setFont(new Font("Arial", Font.BOLD, 20));
+        backToMenuButton.setBackground(new Color(70, 130, 180));
+        backToMenuButton.setForeground(Color.WHITE);
+        backToMenuButton.setFocusPainted(false);
+        backToMenuButton.setBorderPainted(false);
+
+        backToMenuButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (gameThread != null && gameThread.isAlive()) {
+                    gameThread.interrupt();
+                    gameThread = null;
+                }
+
+                ChessMainWindow parent = (ChessMainWindow) SwingUtilities.getWindowAncestor(GamePanel.this);
+                parent.backToMenu();
+            }
+        });
+
+        add(backToMenuButton);
+
         setPieces();
 //        testPromotion();
         // testIllegal();
@@ -650,6 +678,15 @@ public class GamePanel extends JPanel implements Runnable{
     }
     private void notifyGameOver(String message) {
         SwingUtilities.invokeLater(() -> {
+            // Lưu kết quả trước khi hỏi
+            String result;
+            if (gameover) {
+                result = (currentColor == WHITE) ? "White Wins" : "Black Wins";
+            } else {
+                result = "Draw";
+            }
+            dbManager.saveGameResult(result);
+
             int choice = JOptionPane.showConfirmDialog(
                     this,
                     message + "\nBạn có muốn chơi lại không?",
@@ -667,8 +704,8 @@ public class GamePanel extends JPanel implements Runnable{
             }
         });
     }
-    
-    // 🧹 Hàm reset static để tránh bàn cờ cũ bị đè khi trở lại menu
+ 
+    // Hàm reset static để tránh bàn cờ cũ bị đè khi trở lại menu
     public static void resetStaticData() {
         if (pieces != null) {
             pieces.clear();
