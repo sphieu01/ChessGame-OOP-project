@@ -248,6 +248,13 @@ public class GamePanel extends JPanel implements Runnable{
                             castlingP.updatePosition();
                         }
                         
+                        // Nếu ăn quân thì phát âm thanh khác
+                        if (activeP.hittingP != null) {
+                            SoundManager.playSound("res/sounds/capture.wav");
+                        } else {
+                            SoundManager.playSound("res/sounds/move.wav");
+                        }
+
                         if (isKingInCheck() && isCheckmate()){
                             gameover  = true;
                             notifyGameOver("Chiếu hết! " + (currentColor == WHITE ? "Trắng thắng" : "Đen thắng"));

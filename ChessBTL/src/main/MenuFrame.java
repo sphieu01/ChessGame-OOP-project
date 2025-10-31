@@ -10,14 +10,19 @@ import java.util.List;
 public class MenuFrame extends JFrame {
 
     private final DatabaseManager dbManager = new DatabaseManager(); 
+    private final SoundManager soundManager = new SoundManager();
+    private boolean musicOn = true; // trạng thái nhạc (đang bật)
 
+    
     public MenuFrame() {
         setTitle("Chess Game Menu");
         setSize(400, 550);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // căn giữa màn hình
         setResizable(false); // không thể thay đổi kích thước cửa sổ
-
+        
+        soundManager.playLoop("res/sounds/menu_music.wav");
+        
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(new Color(30, 30, 30));
@@ -30,6 +35,7 @@ public class MenuFrame extends JFrame {
 
         JButton playBtn = createButton("Play");
         playBtn.addActionListener(e -> {
+            soundManager.stop();
             dispose(); // đóng menu
             new ChessMainWindow(); // mở game
         });
@@ -42,6 +48,41 @@ public class MenuFrame extends JFrame {
 
         JButton exitBtn = createButton("Exit");
         exitBtn.addActionListener(e -> System.exit(0));
+        
+        // Nút bật/tắt nhạc
+        JButton musicBtn = new JButton("Music: ON");
+        musicBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        musicBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
+        musicBtn.setFocusPainted(false);
+        musicBtn.setBackground(new Color(60, 60, 60));
+        musicBtn.setForeground(Color.WHITE);
+        musicBtn.setMaximumSize(new Dimension(180, 40));
+        musicBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        musicBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                musicBtn.setBackground(new Color(90, 90, 90));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                musicBtn.setBackground(new Color(60, 60, 60));
+            }
+        });
+
+        // Xử lý bật/tắt nhạc
+        musicBtn.addActionListener(e -> {
+            if (musicOn) {
+                soundManager.stop();
+                musicBtn.setText("Music: OFF");
+                musicOn = false;
+            } else {
+                soundManager.playLoop("res/sounds/menu_music.wav");
+                musicBtn.setText("Music: ON");
+                musicOn = true;
+            }
+        });
 
         panel.add(title);
         panel.add(playBtn);
@@ -51,7 +92,8 @@ public class MenuFrame extends JFrame {
         panel.add(infoBtn);
         panel.add(Box.createVerticalStrut(20));
         panel.add(exitBtn);
-        panel.add(Box.createVerticalStrut(30));
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(musicBtn);
 
         add(panel);
         setVisible(true);
