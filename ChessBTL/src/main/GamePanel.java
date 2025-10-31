@@ -99,6 +99,8 @@ public class GamePanel extends JPanel implements Runnable{
 
                 ChessMainWindow parent = (ChessMainWindow) SwingUtilities.getWindowAncestor(GamePanel.this);
                 parent.backToMenu();
+                //Về menu thì cài lại mode AI
+                modeAI = false;
             }
         });
 
@@ -126,10 +128,11 @@ public class GamePanel extends JPanel implements Runnable{
         gameover = false;
         stalemate = false;
         currentColor = WHITE;
-        //dong stockfish
-        sf.stopEngine();
+        if(modeAI == true){
+            //dong stockfish
+            sf.stopEngine();
+        }
         hisMoved = "";
-
         setPieces();
         copyPieces(pieces, simPieces);
     }
