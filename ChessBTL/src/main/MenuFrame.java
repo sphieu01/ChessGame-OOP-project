@@ -43,6 +43,7 @@ public class MenuFrame extends JFrame {
         // Choi voi Stockfish
         JButton playWithStockfis = createButton("Play with Stockfis");
         playWithStockfis.addActionListener(e -> {
+            soundManager.stop();
             dispose(); // đóng menu
             GamePanel.modeAI = true;
             new ChessMainWindow(); // mở game
