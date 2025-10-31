@@ -46,6 +46,12 @@ public class GamePanel extends JPanel implements Runnable{
     boolean promotion;
     boolean gameover;
     boolean stalemate;
+
+    //Đánh với máy
+    public static boolean modeAI = false;
+    StockfishEngine sf = new StockfishEngine();
+    String hisMoved = "";
+    String lastBestMoved;
     
     //db
     DatabaseManager dbManager = new DatabaseManager();
@@ -120,6 +126,9 @@ public class GamePanel extends JPanel implements Runnable{
         gameover = false;
         stalemate = false;
         currentColor = WHITE;
+        //dong stockfish
+        sf.stopEngine();
+        hisMoved = "";
 
         setPieces();
         copyPieces(pieces, simPieces);
@@ -195,6 +204,11 @@ public class GamePanel extends JPanel implements Runnable{
         double delta = 0;
         long lastTime = System.nanoTime();
         long currentTime;
+        //run mode AI
+        if(modeAI == true){
+            sf.startEngine();
+            System.out.println("Đã khởi động Stockfish thành công!");
+        }
         
         while(gameThread != null){
             currentTime = System.nanoTime();
@@ -208,51 +222,65 @@ public class GamePanel extends JPanel implements Runnable{
             }
         }        
     }
-    
-    
-    private void update(){
 
+
+    private void update(){
         if(promotion){
-            promoting();
+            promoting(lastBestMoved);
         }
         else if (gameover == false && stalemate == false)  {
-            // Mouse Button Pressed // hay noi cach khac khi nhap chuot vao
-            if(mouse.pressed){
-                if(activeP == null){
-                    //if activeP is null, check if you can pick a piece
-                    for(Piece piece: simPieces){
-                        // neu mouse
-                        if(piece.color == currentColor &&
-                                piece.col == mouse.x/board.SQUARE_SIZE &&
-                                piece.row == mouse.y/board.SQUARE_SIZE){
-
-                            activeP = piece;
-                        }
+            if(modeAI == true && currentColor == BLACK){
+                String bestMove = sf.getBestMove(hisMoved, 1);
+                lastBestMoved = new String(bestMove);
+//                System.out.println(bestMove);
+                //Lấy con cờ stockfish điều khiển
+                for(Piece piece: simPieces){
+                    if(piece.col == bestMove.charAt(0) - 'a' && piece.row == 8-(bestMove.charAt(1)-'0'))
+                    {
+                        activeP = piece;
                     }
                 }
-                else {
-                    // neu nguoi choi dang giu 1 quan co, co the mo phong the move
-                    simulate();
-                }
-            }
-            /// Mouse button released /// hay noi cach kahc la khi tha chuot
-            if(mouse.pressed == false){
-                if(activeP != null){
+                canMove = false;
+                validSquare = false;
+
+                // Reset the piece list in every loop
+                // This is basically for restoring the removed piece during the simulation
+                copyPieces(pieces, simPieces);
+                // if a piece is being held, update its position
+                //        activeP.x = mouse.x - board.HALF_SQUARE_SIZE;
+                //        activeP.y = mouse.y - board.HALF_SQUARE_SIZE;
+                //        activeP.col = activeP.getCol(activeP.x);
+                //        activeP.row = activeP.getRow(activeP.y);
+
+                activeP.col = bestMove.charAt(2) - 'a';
+                activeP.row = 8-(bestMove.charAt(3)-'0');
+
+                //Check if the piece is hovering over a reachable square
+                if(activeP.canMove(activeP.col, activeP.row)) {
+                    canMove = true;
+
+                    // If hitting a piece, remove it from the list
+                    if(activeP.hittingP != null) {
+                        simPieces.remove(activeP.hittingP.getIndex());
+                    }
+                    checkCastling();
+                    if (isIllegal(activeP) == false && opponentCanCaptureKing()== false){
+                        validSquare = true;
+                    }
                     if(validSquare) {
 
                         // MOVE CONFIRMED
                         // Update the piece list in case a piece has been captured and removed during the simulation
                         copyPieces(simPieces, pieces);
+
+
+                        hisMoved += " " +bestMove;
+//                            System.out.println(hisMoved);
                         activeP.updatePosition();
+
+
                         if(castlingP != null){
                             castlingP.updatePosition();
-                        }
-                        
-                        // Nếu ăn quân thì phát âm thanh khác
-                        if (activeP.hittingP != null) {
-                            SoundManager.playSound("res/sounds/capture.wav");
-                        } else {
-                            SoundManager.playSound("res/sounds/move.wav");
                         }
 
                         if (isKingInCheck() && isCheckmate()){
@@ -273,11 +301,77 @@ public class GamePanel extends JPanel implements Runnable{
                             }
                         }
                     }
+//                    else {
+//                        // The move is not valid so reset everything
+//                        copyPieces(pieces, simPieces);
+//                        activeP.resetPosition();
+//                        activeP = null;
+//                    }
+                }
+            }
+            else {
+                // Mouse Button Pressed // hay noi cach khac khi nhap chuot vao
+                if(mouse.pressed){
+                    if(activeP == null){
+                        //if activeP is null, check if you can pick a piece
+                        for(Piece piece: simPieces){
+                            // neu mouse
+                            if(piece.color == currentColor &&
+                                    piece.col == mouse.x/board.SQUARE_SIZE &&
+                                    piece.row == mouse.y/board.SQUARE_SIZE){
+
+                                activeP = piece;
+                            }
+                        }
+                    }
                     else {
-                        // The move is not valid so reset everything
-                        copyPieces(pieces, simPieces);
-                        activeP.resetPosition();
-                        activeP = null;
+                        // neu nguoi choi dang giu 1 quan co, co the mo phong the move
+                        simulate();
+                    }
+                }
+                /// Mouse button released /// hay noi cach kahc la khi tha chuot
+                if(mouse.pressed == false){
+                    if(activeP != null){
+                        if(validSquare) {
+
+                            // MOVE CONFIRMED
+                            // Update the piece list in case a piece has been captured and removed during the simulation
+                            copyPieces(simPieces, pieces);
+
+
+                            hisMoved += " " +activeP.tranferToStockfish();
+//                            System.out.println(hisMoved);
+                            activeP.updatePosition();
+
+
+                            if(castlingP != null){
+                                castlingP.updatePosition();
+                            }
+
+                            if (isKingInCheck() && isCheckmate()){
+                                gameover  = true;
+                                notifyGameOver("Chiếu hết! " + (currentColor == WHITE ? "Trắng thắng" : "Đen thắng"));
+                            }
+                            else if (isStalemate() && isKingInCheck() == false) {
+                                stalemate = true;
+                                notifyGameOver("Hòa cờ!");
+                            }
+                            else{
+                                // add if can promote
+                                if(canPromote()){
+                                    promotion = true;
+                                }
+                                else {
+                                    changePlayer();
+                                }
+                            }
+                        }
+                        else {
+                            // The move is not valid so reset everything
+                            copyPieces(pieces, simPieces);
+                            activeP.resetPosition();
+                            activeP = null;
+                        }
                     }
                 }
             }
@@ -367,7 +461,7 @@ public class GamePanel extends JPanel implements Runnable{
         }
         return false;
     }
-    private void promoting(){
+    private void promoting(String a){
         if(mouse.pressed){
             for(Piece piece : promoPieces){
                 if(piece.col == mouse.x/Board.SQUARE_SIZE && piece.row == mouse.y/Board.SQUARE_SIZE){
@@ -385,6 +479,19 @@ public class GamePanel extends JPanel implements Runnable{
                     changePlayer();
                 }
             }
+        }
+        if(modeAI == true && currentColor == BLACK){
+            switch (a.charAt(4)){
+                case 'r': simPieces.add(new Rook(currentColor, activeP.col, activeP.row)); break;
+                case 'k': simPieces.add(new Knight(currentColor, activeP.col, activeP.row)); break;
+                case 'b': simPieces.add(new Bishop(currentColor, activeP.col, activeP.row)); break;
+                case 'q': simPieces.add(new Queen(currentColor, activeP.col, activeP.row)); break;
+            }
+            simPieces.remove(activeP.getIndex());
+            copyPieces(simPieces,pieces);
+            activeP = null;
+            promotion = false;
+            changePlayer();
         }
     }
     

@@ -40,6 +40,14 @@ public class MenuFrame extends JFrame {
             new ChessMainWindow(); // mở game
         });
 
+        // Choi voi Stockfish
+        JButton playWithStockfis = createButton("Play with Stockfis");
+        playWithStockfis.addActionListener(e -> {
+            dispose(); // đóng menu
+            GamePanel.modeAI = true;
+            new ChessMainWindow(); // mở game
+        });
+
         JButton historyBtn = createButton("History");
         historyBtn.addActionListener(e -> showHistoryWindow());
 
@@ -86,6 +94,8 @@ public class MenuFrame extends JFrame {
 
         panel.add(title);
         panel.add(playBtn);
+        panel.add(Box.createVerticalStrut(15));
+        panel.add(playWithStockfis);
         panel.add(Box.createVerticalStrut(20)); //thêm một khoảng trống dọc (vertical space) có chiều cao 20 pixel
         panel.add(historyBtn);
         panel.add(Box.createVerticalStrut(20));

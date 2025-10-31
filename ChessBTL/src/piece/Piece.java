@@ -141,6 +141,12 @@ public class Piece {
         return false;
     }
 
+    //Chuyeenr bàn cờ của tôi sang hệ toạ độ stockfish
+    public String tranferToStockfish(){
+        String res = (char) ('a' + preCol) + String.valueOf(8-preRow) + (char) ('a' + col) + String.valueOf(8-row);
+        return res;
+    }
+
     public boolean pieceIsOnStraightLine(int targetCol, int targetRow) {
         // Khi quân cờ di chuyển sang trái
         for (int c = preCol - 1; c > targetCol; c--) {
