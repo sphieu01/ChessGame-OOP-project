@@ -60,6 +60,8 @@ public class King extends Piece {
         }
         return false;
     }
-
+    @Override
+    public King clone() { return new King(this); }
+    public King(King other) { super(other); }
 
 }

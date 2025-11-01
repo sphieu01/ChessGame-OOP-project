@@ -12,7 +12,7 @@ import javax.imageio.ImageIO;
 import java.awt.Graphics2D;
 import main.GamePanel;
 
-public class Piece {
+public class Piece implements Cloneable {
 
     public Type type;
     public BufferedImage image;
@@ -240,5 +240,35 @@ public class Piece {
     
     public void draw(Graphics2D g2){
         g2.drawImage(image, x, y, board.SQUARE_SIZE, board.SQUARE_SIZE, null);
+    }
+    
+    
+//    @Override
+//    public Piece clone() {
+//        return new Piece(this);
+//    }
+    @Override
+    public Piece clone() {
+        try {
+            return (Piece) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
+
+    public Piece(Piece other) {
+        // copy các field chung
+        this.type = other.type;
+        this.color = other.color;
+        this.image = other.image;
+        this.x = other.x;
+        this.y = other.y;
+        this.col = other.col;
+        this.row = other.row;
+        this.preCol = other.preCol;
+        this.preRow = other.preRow;
+        this.moved = other.moved;
+        this.twoStepped = other.twoStepped;
+        this.hittingP = null; // Không clone
     }
 }

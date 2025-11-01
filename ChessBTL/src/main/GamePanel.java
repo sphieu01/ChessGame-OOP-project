@@ -8,6 +8,7 @@ import javax.swing.JPanel;
 import java.util.*;
 import java.io.*;
 import javax.swing.JOptionPane;
+import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 import piece.Pawn;
 import piece.*;
@@ -30,6 +31,12 @@ public class GamePanel extends JPanel implements Runnable{
 
     public static Piece castlingP;
     
+    // history play
+    public static Vector<ArrayList<Piece>> historyplay = new Vector<ArrayList<Piece>>();
+    public static Vector<Piece> historyCheckingP = new Vector<Piece>();
+//    public static int step;
+    private static GamePanel instance;
+    
     //Color
     public static final int WHITE = 0;
     public static final int BLACK = 1;
@@ -48,10 +55,22 @@ public class GamePanel extends JPanel implements Runnable{
         addMouseMotionListener(mouse); //gọi đến các phương thức để cập nhập tòa đọ hiện 
         addMouseListener(mouse); //gọi đến các phương thức nhấp và nhả chuột
         
+        instance = this;
+        setLayout(null);  // Dùng null layout để setBounds có tác dụng
+        JButton undoButton = createUndoButton();
+        add(undoButton);
+        
         setPieces();
 //        testPromotion();
-        // testIllegal();
+//        testIllegal();
+        historyplay.add(deepCopyPieces(pieces));
         copyPieces(pieces, simPieces);
+        historyCheckingP.clear();
+        historyCheckingP.add(null);
+    }
+    
+     public static GamePanel getInstance() {
+        return instance;
     }
     
     public void resetGame() {
@@ -70,9 +89,13 @@ public class GamePanel extends JPanel implements Runnable{
         gameover = false;
         stalemate = false;
         currentColor = WHITE;
-
+        
         setPieces();
         copyPieces(pieces, simPieces);
+        historyplay.clear();
+        historyplay.add(deepCopyPieces(pieces));
+        historyCheckingP.clear();
+        historyCheckingP.add(null);
     }
     
     public void lauchGame(){
@@ -123,14 +146,14 @@ public class GamePanel extends JPanel implements Runnable{
 //        pieces.add(new Pawn(WHITE,0,4));
 //        pieces.add(new Pawn(BLACK, 0 ,5));
 //    }
-//    public void testIllegal(){
-//        pieces.add(new Pawn(WHITE, 7,6));
-//        pieces.add(new King(WHITE, 3,7));
-//        pieces.add(new King(BLACK, 0,3));
-//        pieces.add(new Bishop(BLACK, 1,4));
-//        pieces.add(new Queen(BLACK, 4,5));
-//    }
-    private void copyPieces(ArrayList<Piece> source, ArrayList<Piece> target){
+    public void testIllegal(){
+        pieces.add(new Pawn(WHITE, 7,6));
+        pieces.add(new King(WHITE, 3,7));
+        pieces.add(new King(BLACK, 0,3));
+        pieces.add(new Bishop(BLACK, 1,4));
+        pieces.add(new Queen(BLACK, 4,5));
+    }
+    public static void copyPieces(ArrayList<Piece> source, ArrayList<Piece> target){
         
         target.clear();
         for(int i = 0; i < source.size(); i++){
@@ -161,7 +184,7 @@ public class GamePanel extends JPanel implements Runnable{
     
     
     private void update(){
-
+        
         if(promotion){
             promoting();
         }
@@ -215,6 +238,13 @@ public class GamePanel extends JPanel implements Runnable{
                                 changePlayer();
                             }
                         }
+                        
+                        // them lich su
+                        historyplay.add(GamePanel.deepCopyPieces(pieces));
+                        if (checkingP == null){
+                            historyCheckingP.add(null);
+                        }
+                        else historyCheckingP.add(checkingP.clone());
                     }
                     else {
                         // The move is not valid so reset everything
@@ -654,5 +684,52 @@ public class GamePanel extends JPanel implements Runnable{
             simPieces.clear();
         }
         castlingP = null;
+    }
+    public static ArrayList<Piece> deepCopyPieces(ArrayList<Piece> original) {
+        ArrayList<Piece> copy = new ArrayList<>();
+        for (Piece p : original) {
+            copy.add(p.clone());  
+        }
+        return copy;
+    }
+    
+    public JButton createUndoButton() {
+        JButton undo = new JButton("Undo");
+        undo.setBounds(850, 700, 100, 50);
+        undo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        undo.setFont(new Font("SansSerif", Font.BOLD, 18));
+        undo.setFocusPainted(false);
+        undo.setBackground(new Color(80, 80, 80));
+        undo.setForeground(Color.WHITE);
+//        btn.setMaximumSize(new Dimension(200, 50));
+        undo.addActionListener(e -> {
+            if (historyplay.size() >= 2) {
+                int step = historyplay.size() - 2;
+
+                // Reset active piece 
+                activeP = pieces.get(0);
+                canMove = false;
+                validSquare = false;
+
+                // Pieces từ history
+                pieces.clear();
+                pieces.addAll(deepCopyPieces(historyplay.get(step)));
+
+                simPieces.clear();
+                simPieces.addAll(deepCopyPieces(historyplay.get(step)));
+
+                // Remove last history step
+                historyplay.remove(historyplay.size() - 1);
+                historyCheckingP.remove(historyCheckingP.size() - 1);
+                checkingP = historyCheckingP.get(historyCheckingP.size() - 1);
+
+                // Change color
+                currentColor = (currentColor == WHITE) ? BLACK : WHITE;
+
+//                update();
+//                getInstance().repaint();
+            }
+        });
+        return undo;
     }
 }
