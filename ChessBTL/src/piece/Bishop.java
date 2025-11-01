@@ -31,7 +31,6 @@ public class Bishop extends Piece {
         }
         return false;
     }
-    
     @Override
     public Bishop clone() { return new Bishop(this); }
     public Bishop(Bishop other) { super(other); }

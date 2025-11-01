@@ -1,6 +1,6 @@
-
 package main;
 
+import database.DatabaseManager;
 import java.awt.*;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -8,8 +8,10 @@ import javax.swing.JPanel;
 import java.util.*;
 import java.io.*;
 import javax.swing.JOptionPane;
-import javax.swing.JButton;
 import javax.swing.SwingUtilities;
+import javax.swing.JButton;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import piece.Pawn;
 import piece.*;
 
@@ -21,6 +23,8 @@ public class GamePanel extends JPanel implements Runnable{
     Thread gameThread; // da luong
     board Board = new board();
     Mouse mouse = new Mouse();
+    JButton playAgainButton;
+    JButton backToMenuButton;
     
     //Pieces
     public static ArrayList<Piece> pieces = new ArrayList<>();
@@ -34,7 +38,6 @@ public class GamePanel extends JPanel implements Runnable{
     // history play
     public static Vector<ArrayList<Piece>> historyplay = new Vector<ArrayList<Piece>>();
     public static Vector<Piece> historyCheckingP = new Vector<Piece>();
-//    public static int step;
     private static GamePanel instance;
     
     //Color
@@ -48,10 +51,20 @@ public class GamePanel extends JPanel implements Runnable{
     boolean promotion;
     boolean gameover;
     boolean stalemate;
+
+    //Đánh với máy
+    public static boolean modeAI = false;
+    StockfishEngine sf = new StockfishEngine();
+    String hisMoved = "";
+    String lastBestMoved;
+    
+    //db
+    DatabaseManager dbManager = new DatabaseManager();
     
     public GamePanel(){
         setPreferredSize(new Dimension(WIDTH,HEIGHT)); //same as setSize() but got layout manager
         setBackground(Color.black);
+        setLayout(null); // Sử dụng absolute layout để đặt button chính xác
         addMouseMotionListener(mouse); //gọi đến các phương thức để cập nhập tòa đọ hiện 
         addMouseListener(mouse); //gọi đến các phương thức nhấp và nhả chuột
         
@@ -60,16 +73,59 @@ public class GamePanel extends JPanel implements Runnable{
         JButton undoButton = createUndoButton();
         add(undoButton);
         
+        playAgainButton = new JButton("Reset");
+        playAgainButton.setBounds(830, 5, 100, 50); 
+        playAgainButton.setFont(new Font("Arial", Font.BOLD, 20)); 
+        playAgainButton.setBackground(new Color(118, 150, 83));
+        playAgainButton.setForeground(Color.WHITE);
+        playAgainButton.setFocusPainted(false);
+        playAgainButton.setBorderPainted(false);
+        
+        playAgainButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                resetGame();
+                lauchGame();
+            }
+        });
+        
+        add(playAgainButton);
+        
+        backToMenuButton = new JButton("Menu");
+        backToMenuButton.setBounds(970, 5, 100, 50);
+        backToMenuButton.setFont(new Font("Arial", Font.BOLD, 20));
+        backToMenuButton.setBackground(new Color(118, 150, 83));
+        backToMenuButton.setForeground(Color.WHITE);
+        backToMenuButton.setFocusPainted(false);
+        backToMenuButton.setBorderPainted(false);
+
+        backToMenuButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (gameThread != null && gameThread.isAlive()) {
+                    gameThread.interrupt();
+                    gameThread = null;
+                }
+
+                ChessMainWindow parent = (ChessMainWindow) SwingUtilities.getWindowAncestor(GamePanel.this);
+                parent.backToMenu();
+            }
+        });
+
+        add(backToMenuButton);
+
         setPieces();
 //        testPromotion();
-//        testIllegal();
+        // testIllegal();
+//        copyPieces(pieces, simPieces);
+        
         historyplay.add(deepCopyPieces(pieces));
         copyPieces(pieces, simPieces);
         historyCheckingP.clear();
         historyCheckingP.add(null);
     }
     
-     public static GamePanel getInstance() {
+    public static GamePanel getInstance() {
         return instance;
     }
     
@@ -89,7 +145,12 @@ public class GamePanel extends JPanel implements Runnable{
         gameover = false;
         stalemate = false;
         currentColor = WHITE;
-        
+        //dong stockfish
+        if(modeAI == true){
+            sf.stopEngine();
+        }
+        hisMoved = "";
+
         setPieces();
         copyPieces(pieces, simPieces);
         historyplay.clear();
@@ -104,8 +165,12 @@ public class GamePanel extends JPanel implements Runnable{
     }
     
     public void setPieces(){
+        // king
+        pieces.add(new King(WHITE, 4 , 7));
+        pieces.add(new King(BLACK, 4 , 0));
         
         //White team
+        
         pieces.add(new Pawn(WHITE, 0 , 6));
         pieces.add(new Pawn(WHITE, 1 , 6));
         pieces.add(new Pawn(WHITE, 2 , 6));
@@ -120,10 +185,11 @@ public class GamePanel extends JPanel implements Runnable{
         pieces.add(new Knight(WHITE, 1 , 7));
         pieces.add(new Bishop(WHITE, 5 , 7));
         pieces.add(new Bishop(WHITE, 2 , 7));
-        pieces.add(new King(WHITE, 4 , 7));
+        
         pieces.add(new Queen(WHITE, 3 , 7));
         
         //Black team
+        
         pieces.add(new Pawn(BLACK, 0 , 1));
         pieces.add(new Pawn(BLACK, 1 , 1));
         pieces.add(new Pawn(BLACK, 2 , 1));
@@ -138,7 +204,7 @@ public class GamePanel extends JPanel implements Runnable{
         pieces.add(new Knight(BLACK, 1 , 0));
         pieces.add(new Bishop(BLACK, 5 , 0));
         pieces.add(new Bishop(BLACK, 2 , 0));
-        pieces.add(new King(BLACK, 4 , 0));
+        
         pieces.add(new Queen(BLACK, 3 , 0));
     }
 
@@ -146,14 +212,14 @@ public class GamePanel extends JPanel implements Runnable{
 //        pieces.add(new Pawn(WHITE,0,4));
 //        pieces.add(new Pawn(BLACK, 0 ,5));
 //    }
-    public void testIllegal(){
-        pieces.add(new Pawn(WHITE, 7,6));
-        pieces.add(new King(WHITE, 3,7));
-        pieces.add(new King(BLACK, 0,3));
-        pieces.add(new Bishop(BLACK, 1,4));
-        pieces.add(new Queen(BLACK, 4,5));
-    }
-    public static void copyPieces(ArrayList<Piece> source, ArrayList<Piece> target){
+//    public void testIllegal(){
+//        pieces.add(new Pawn(WHITE, 7,6));
+//        pieces.add(new King(WHITE, 3,7));
+//        pieces.add(new King(BLACK, 0,3));
+//        pieces.add(new Bishop(BLACK, 1,4));
+//        pieces.add(new Queen(BLACK, 4,5));
+//    }
+    private void copyPieces(ArrayList<Piece> source, ArrayList<Piece> target){
         
         target.clear();
         for(int i = 0; i < source.size(); i++){
@@ -168,6 +234,11 @@ public class GamePanel extends JPanel implements Runnable{
         double delta = 0;
         long lastTime = System.nanoTime();
         long currentTime;
+        //run mode AI
+        if(modeAI == true){
+            sf.startEngine();
+            System.out.println("Đã khởi động Stockfish thành công!");
+        }
         
         while(gameThread != null){
             currentTime = System.nanoTime();
@@ -181,44 +252,72 @@ public class GamePanel extends JPanel implements Runnable{
             }
         }        
     }
-    
-    
+
+
     private void update(){
-        
         if(promotion){
-            promoting();
+            promoting(lastBestMoved);
         }
         else if (gameover == false && stalemate == false)  {
-            // Mouse Button Pressed // hay noi cach khac khi nhap chuot vao
-            if(mouse.pressed){
-                if(activeP == null){
-                    //if activeP is null, check if you can pick a piece
-                    for(Piece piece: simPieces){
-                        // neu mouse
-                        if(piece.color == currentColor &&
-                                piece.col == mouse.x/board.SQUARE_SIZE &&
-                                piece.row == mouse.y/board.SQUARE_SIZE){
-
-                            activeP = piece;
-                        }
+            if(modeAI == true && currentColor == BLACK){
+                String bestMove = sf.getBestMove(hisMoved, 1);
+                lastBestMoved = new String(bestMove);
+//                System.out.println(bestMove);
+                //Lấy con cờ stockfish điều khiển
+                for(Piece piece: simPieces ){
+                    if(piece.col == bestMove.charAt(0) - 'a' && piece.row == 8-(bestMove.charAt(1)-'0'))
+                    {
+                        activeP = piece;
                     }
                 }
-                else {
-                    // neu nguoi choi dang giu 1 quan co, co the mo phong the move
-                    simulate();
-                }
-            }
-            /// Mouse button released /// hay noi cach kahc la khi tha chuot
-            if(mouse.pressed == false){
-                if(activeP != null){
+                canMove = false;
+                validSquare = false;
+
+                // Reset the piece list in every loop
+                // This is basically for restoring the removed piece during the simulation
+                copyPieces(pieces, simPieces);
+                // if a piece is being held, update its position
+                //        activeP.x = mouse.x - board.HALF_SQUARE_SIZE;
+                //        activeP.y = mouse.y - board.HALF_SQUARE_SIZE;
+                //        activeP.col = activeP.getCol(activeP.x);
+                //        activeP.row = activeP.getRow(activeP.y);
+
+                activeP.col = bestMove.charAt(2) - 'a';
+                activeP.row = 8-(bestMove.charAt(3)-'0');
+
+                //Check if the piece is hovering over a reachable square
+                if(activeP.canMove(activeP.col, activeP.row)) {
+                    canMove = true;
+
+                    // If hitting a piece, remove it from the list
+                    if(activeP.hittingP != null) {
+                        simPieces.remove(activeP.hittingP.getIndex());
+                    }
+                    checkCastling();
+                    if (isIllegal(activeP) == false && opponentCanCaptureKing()== false){
+                        validSquare = true;
+                    }
                     if(validSquare) {
 
                         // MOVE CONFIRMED
                         // Update the piece list in case a piece has been captured and removed during the simulation
                         copyPieces(simPieces, pieces);
+
+
+                        hisMoved += " " +bestMove;
+//                            System.out.println(hisMoved);
                         activeP.updatePosition();
+
+
                         if(castlingP != null){
                             castlingP.updatePosition();
+                        }
+                        
+                        // Nếu ăn quân thì phát âm thanh khác
+                        if (activeP.hittingP != null) {
+                            SoundManager.playSound("res/sounds/capture.wav");
+                        } else {
+                            SoundManager.playSound("res/sounds/move.wav");
                         }
                         
                         if (isKingInCheck() && isCheckmate()){
@@ -238,19 +337,98 @@ public class GamePanel extends JPanel implements Runnable{
                                 changePlayer();
                             }
                         }
-                        
                         // them lich su
                         historyplay.add(GamePanel.deepCopyPieces(pieces));
                         if (checkingP == null){
                             historyCheckingP.add(null);
                         }
                         else historyCheckingP.add(checkingP.clone());
+                        System.out.println(hisMoved);
+                    }
+//                    else {
+//                        // The move is not valid so reset everything
+//                        copyPieces(pieces, simPieces);
+//                        activeP.resetPosition();
+//                        activeP = null;
+//                    }
+                }
+            }
+            else {
+                // Mouse Button Pressed // hay noi cach khac khi nhap chuot vao
+                if(mouse.pressed){
+                    if(activeP == null){
+                        //if activeP is null, check if you can pick a piece
+                        for(Piece piece: simPieces){
+                            // neu mouse
+                            if(piece.color == currentColor &&
+                                    piece.col == mouse.x/board.SQUARE_SIZE &&
+                                    piece.row == mouse.y/board.SQUARE_SIZE){
+
+                                activeP = piece;
+                            }
+                        }
                     }
                     else {
-                        // The move is not valid so reset everything
-                        copyPieces(pieces, simPieces);
-                        activeP.resetPosition();
-                        activeP = null;
+                        // neu nguoi choi dang giu 1 quan co, co the mo phong the move
+                        simulate();
+                    }
+                }
+                /// Mouse button released /// hay noi cach kahc la khi tha chuot
+                if(mouse.pressed == false){
+                    if(activeP != null){
+                        if(validSquare) {
+
+                            // MOVE CONFIRMED
+                            // Update the piece list in case a piece has been captured and removed during the simulation
+                            copyPieces(simPieces, pieces);
+
+
+                            hisMoved += " " +activeP.tranferToStockfish();
+//                            System.out.println(hisMoved);
+                            activeP.updatePosition();
+
+
+                            if(castlingP != null){
+                                castlingP.updatePosition();
+                            }
+                            
+                            // Nếu ăn quân thì phát âm thanh khác
+                            if (activeP.hittingP != null) {
+                                SoundManager.playSound("res/sounds/capture.wav");
+                            } else {
+                                SoundManager.playSound("res/sounds/move.wav");
+                            }
+                            
+                            if (isKingInCheck() && isCheckmate()){
+                                gameover  = true;
+                                notifyGameOver("Chiếu hết! " + (currentColor == WHITE ? "Trắng thắng" : "Đen thắng"));
+                            }
+                            else if (isStalemate() && isKingInCheck() == false) {
+                                stalemate = true;
+                                notifyGameOver("Hòa cờ!");
+                            }
+                            else{
+                                // add if can promote
+                                if(canPromote()){
+                                    promotion = true;
+                                }
+                                else {
+                                    changePlayer();
+                                }
+                            }
+                            // them lich su
+                            historyplay.add(GamePanel.deepCopyPieces(pieces));
+                            if (checkingP == null){
+                                historyCheckingP.add(null);
+                            }
+                            else historyCheckingP.add(checkingP.clone());
+                        }
+                        else {
+                            // The move is not valid so reset everything
+                            copyPieces(pieces, simPieces);
+                            activeP.resetPosition();
+                            activeP = null;
+                        }
                     }
                 }
             }
@@ -340,7 +518,7 @@ public class GamePanel extends JPanel implements Runnable{
         }
         return false;
     }
-    private void promoting(){
+    private void promoting(String a){
         if(mouse.pressed){
             for(Piece piece : promoPieces){
                 if(piece.col == mouse.x/Board.SQUARE_SIZE && piece.row == mouse.y/Board.SQUARE_SIZE){
@@ -358,6 +536,19 @@ public class GamePanel extends JPanel implements Runnable{
                     changePlayer();
                 }
             }
+        }
+        if(modeAI == true && currentColor == BLACK){
+            switch (a.charAt(4)){
+                case 'r': simPieces.add(new Rook(currentColor, activeP.col, activeP.row)); break;
+                case 'k': simPieces.add(new Knight(currentColor, activeP.col, activeP.row)); break;
+                case 'b': simPieces.add(new Bishop(currentColor, activeP.col, activeP.row)); break;
+                case 'q': simPieces.add(new Queen(currentColor, activeP.col, activeP.row)); break;
+            }
+            simPieces.remove(activeP.getIndex());
+            copyPieces(simPieces,pieces);
+            activeP = null;
+            promotion = false;
+            changePlayer();
         }
     }
     
@@ -658,6 +849,15 @@ public class GamePanel extends JPanel implements Runnable{
     }
     private void notifyGameOver(String message) {
         SwingUtilities.invokeLater(() -> {
+            // Lưu kết quả trước khi hỏi
+            String result;
+            if (gameover) {
+                result = (currentColor == WHITE) ? "White Wins" : "Black Wins";
+            } else {
+                result = "Draw";
+            }
+            dbManager.saveGameResult(result);
+
             int choice = JOptionPane.showConfirmDialog(
                     this,
                     message + "\nBạn có muốn chơi lại không?",
@@ -668,14 +868,15 @@ public class GamePanel extends JPanel implements Runnable{
             ChessMainWindow parent = (ChessMainWindow) SwingUtilities.getWindowAncestor(this);
 
             if (choice == JOptionPane.YES_OPTION) {
-                parent.playAgain();
+                resetGame();
+                lauchGame();
             } else {
                 parent.backToMenu();
             }
         });
     }
-    
-    // 🧹 Hàm reset static để tránh bàn cờ cũ bị đè khi trở lại menu
+ 
+    // Hàm reset static để tránh bàn cờ cũ bị đè khi trở lại menu
     public static void resetStaticData() {
         if (pieces != null) {
             pieces.clear();
@@ -695,16 +896,17 @@ public class GamePanel extends JPanel implements Runnable{
     
     public JButton createUndoButton() {
         JButton undo = new JButton("Undo");
-        undo.setBounds(850, 700, 100, 50);
+        undo.setBounds(830, 745, 100, 50);
+        
         undo.setAlignmentX(Component.CENTER_ALIGNMENT);
         undo.setFont(new Font("SansSerif", Font.BOLD, 18));
         undo.setFocusPainted(false);
-        undo.setBackground(new Color(80, 80, 80));
+        undo.setBackground(new Color(118, 150, 83));
         undo.setForeground(Color.WHITE);
-//        btn.setMaximumSize(new Dimension(200, 50));
+        
         undo.addActionListener(e -> {
-            if (historyplay.size() >= 2) {
-                int step = historyplay.size() - 2;
+            if (historyplay.size() >= 3) {
+                int step = historyplay.size() - 3;
 
                 // Reset active piece 
                 activeP = pieces.get(0);
@@ -720,14 +922,20 @@ public class GamePanel extends JPanel implements Runnable{
 
                 // Remove last history step
                 historyplay.remove(historyplay.size() - 1);
+                historyplay.remove(historyplay.size() - 1);
+                historyCheckingP.remove(historyCheckingP.size() - 1);
                 historyCheckingP.remove(historyCheckingP.size() - 1);
                 checkingP = historyCheckingP.get(historyCheckingP.size() - 1);
-
+                
+                // xoa 2 nuoc hismoved
+                String[] parts = hisMoved.trim().split("\\s+");
+                if (parts.length <= 2) hisMoved = "";
+                else hisMoved = String.join(" ", java.util.Arrays.copyOf(parts, parts.length - 2));
+                
                 // Change color
-                currentColor = (currentColor == WHITE) ? BLACK : WHITE;
-
-//                update();
-//                getInstance().repaint();
+                //currentColor = (currentColor == WHITE) ? BLACK : WHITE;
+                update();
+                getInstance().repaint();
             }
         });
         return undo;

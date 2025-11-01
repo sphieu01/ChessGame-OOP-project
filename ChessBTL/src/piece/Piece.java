@@ -12,7 +12,7 @@ import javax.imageio.ImageIO;
 import java.awt.Graphics2D;
 import main.GamePanel;
 
-public class Piece implements Cloneable {
+public class Piece {
 
     public Type type;
     public BufferedImage image;
@@ -141,6 +141,12 @@ public class Piece implements Cloneable {
         return false;
     }
 
+    //Chuyeenr bàn cờ của tôi sang hệ toạ độ stockfish
+    public String tranferToStockfish(){
+        String res = (char) ('a' + preCol) + String.valueOf(8-preRow) + (char) ('a' + col) + String.valueOf(8-row);
+        return res;
+    }
+
     public boolean pieceIsOnStraightLine(int targetCol, int targetRow) {
         // Khi quân cờ di chuyển sang trái
         for (int c = preCol - 1; c > targetCol; c--) {
@@ -238,15 +244,6 @@ public class Piece implements Cloneable {
         return false;
     }
     
-    public void draw(Graphics2D g2){
-        g2.drawImage(image, x, y, board.SQUARE_SIZE, board.SQUARE_SIZE, null);
-    }
-    
-    
-//    @Override
-//    public Piece clone() {
-//        return new Piece(this);
-//    }
     @Override
     public Piece clone() {
         try {
@@ -257,7 +254,7 @@ public class Piece implements Cloneable {
     }
 
     public Piece(Piece other) {
-        // copy các field chung
+        // copy cac field chung
         this.type = other.type;
         this.color = other.color;
         this.image = other.image;
@@ -269,6 +266,10 @@ public class Piece implements Cloneable {
         this.preRow = other.preRow;
         this.moved = other.moved;
         this.twoStepped = other.twoStepped;
-        this.hittingP = null; // Không clone
+        this.hittingP = null; // no clone
+    }
+    
+    public void draw(Graphics2D g2){
+        g2.drawImage(image, x, y, board.SQUARE_SIZE, board.SQUARE_SIZE, null);
     }
 }
