@@ -368,29 +368,6 @@ public class GamePanel extends JPanel implements Runnable{
                             }
                         }
                     }
-//                    else {
-//                        // The move is not valid so reset everything
-//                        copyPieces(pieces, simPieces);
-//                        activeP.resetPosition();
-//                        activeP = null;
-//                    }
-                }
-            }
-            else {
-                // Mouse Button Pressed // hay noi cach khac khi nhap chuot vao
-                if(mouse.pressed){
-                    if(activeP == null){
-                        //if activeP is null, check if you can pick a piece
-                        for(Piece piece: simPieces){
-                            // neu mouse
-                            if(piece.color == currentColor &&
-                                    piece.col == mouse.x/board.SQUARE_SIZE &&
-                                    piece.row == mouse.y/board.SQUARE_SIZE){
-
-                                activeP = piece;
-                            }
-                        }
-                    }
                     else {
                         // neu nguoi choi dang giu 1 quan co, co the mo phong the move
                         simulate();
