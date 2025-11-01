@@ -35,6 +35,11 @@ public class GamePanel extends JPanel implements Runnable{
 
     public static Piece castlingP;
     
+    // history play
+    public static Vector<ArrayList<Piece>> historyplay = new Vector<ArrayList<Piece>>();
+    public static Vector<Piece> historyCheckingP = new Vector<Piece>();
+    private static GamePanel instance;
+    
     //Color
     public static final int WHITE = 0;
     public static final int BLACK = 1;
@@ -63,10 +68,15 @@ public class GamePanel extends JPanel implements Runnable{
         addMouseMotionListener(mouse); //gọi đến các phương thức để cập nhập tòa đọ hiện 
         addMouseListener(mouse); //gọi đến các phương thức nhấp và nhả chuột
         
-        playAgainButton = new JButton("Play Again");
-        playAgainButton.setBounds(840, 720, 200, 50); 
+        instance = this;
+        setLayout(null);  // Dùng null layout để setBounds có tác dụng
+        JButton undoButton = createUndoButton();
+        add(undoButton);
+        
+        playAgainButton = new JButton("Reset");
+        playAgainButton.setBounds(830, 5, 100, 50); 
         playAgainButton.setFont(new Font("Arial", Font.BOLD, 20)); 
-        playAgainButton.setBackground(new Color(70, 130, 180));
+        playAgainButton.setBackground(new Color(118, 150, 83));
         playAgainButton.setForeground(Color.WHITE);
         playAgainButton.setFocusPainted(false);
         playAgainButton.setBorderPainted(false);
@@ -82,9 +92,9 @@ public class GamePanel extends JPanel implements Runnable{
         add(playAgainButton);
         
         backToMenuButton = new JButton("Menu");
-        backToMenuButton.setBounds(840, 5, 100, 50);
+        backToMenuButton.setBounds(970, 5, 100, 50);
         backToMenuButton.setFont(new Font("Arial", Font.BOLD, 20));
-        backToMenuButton.setBackground(new Color(70, 130, 180));
+        backToMenuButton.setBackground(new Color(118, 150, 83));
         backToMenuButton.setForeground(Color.WHITE);
         backToMenuButton.setFocusPainted(false);
         backToMenuButton.setBorderPainted(false);
@@ -107,7 +117,16 @@ public class GamePanel extends JPanel implements Runnable{
         setPieces();
 //        testPromotion();
         // testIllegal();
+//        copyPieces(pieces, simPieces);
+        
+        historyplay.add(deepCopyPieces(pieces));
         copyPieces(pieces, simPieces);
+        historyCheckingP.clear();
+        historyCheckingP.add(null);
+    }
+    
+    public static GamePanel getInstance() {
+        return instance;
     }
     
     public void resetGame() {
@@ -127,11 +146,17 @@ public class GamePanel extends JPanel implements Runnable{
         stalemate = false;
         currentColor = WHITE;
         //dong stockfish
-        sf.stopEngine();
+        if(modeAI == true){
+            sf.stopEngine();
+        }
         hisMoved = "";
 
         setPieces();
         copyPieces(pieces, simPieces);
+        historyplay.clear();
+        historyplay.add(deepCopyPieces(pieces));
+        historyCheckingP.clear();
+        historyCheckingP.add(null);
     }
     
     public void lauchGame(){
@@ -140,8 +165,12 @@ public class GamePanel extends JPanel implements Runnable{
     }
     
     public void setPieces(){
+        // king
+        pieces.add(new King(WHITE, 4 , 7));
+        pieces.add(new King(BLACK, 4 , 0));
         
         //White team
+        
         pieces.add(new Pawn(WHITE, 0 , 6));
         pieces.add(new Pawn(WHITE, 1 , 6));
         pieces.add(new Pawn(WHITE, 2 , 6));
@@ -156,10 +185,11 @@ public class GamePanel extends JPanel implements Runnable{
         pieces.add(new Knight(WHITE, 1 , 7));
         pieces.add(new Bishop(WHITE, 5 , 7));
         pieces.add(new Bishop(WHITE, 2 , 7));
-        pieces.add(new King(WHITE, 4 , 7));
+        
         pieces.add(new Queen(WHITE, 3 , 7));
         
         //Black team
+        
         pieces.add(new Pawn(BLACK, 0 , 1));
         pieces.add(new Pawn(BLACK, 1 , 1));
         pieces.add(new Pawn(BLACK, 2 , 1));
@@ -174,7 +204,7 @@ public class GamePanel extends JPanel implements Runnable{
         pieces.add(new Knight(BLACK, 1 , 0));
         pieces.add(new Bishop(BLACK, 5 , 0));
         pieces.add(new Bishop(BLACK, 2 , 0));
-        pieces.add(new King(BLACK, 4 , 0));
+        
         pieces.add(new Queen(BLACK, 3 , 0));
     }
 
@@ -234,7 +264,7 @@ public class GamePanel extends JPanel implements Runnable{
                 lastBestMoved = new String(bestMove);
 //                System.out.println(bestMove);
                 //Lấy con cờ stockfish điều khiển
-                for(Piece piece: simPieces){
+                for(Piece piece: simPieces ){
                     if(piece.col == bestMove.charAt(0) - 'a' && piece.row == 8-(bestMove.charAt(1)-'0'))
                     {
                         activeP = piece;
@@ -305,6 +335,36 @@ public class GamePanel extends JPanel implements Runnable{
                             }
                             else {
                                 changePlayer();
+                            }
+                        }
+                        // them lich su
+                        historyplay.add(GamePanel.deepCopyPieces(pieces));
+                        if (checkingP == null){
+                            historyCheckingP.add(null);
+                        }
+                        else historyCheckingP.add(checkingP.clone());
+                        System.out.println(hisMoved);
+                    }
+//                    else {
+//                        // The move is not valid so reset everything
+//                        copyPieces(pieces, simPieces);
+//                        activeP.resetPosition();
+//                        activeP = null;
+//                    }
+                }
+            }
+            else {
+                // Mouse Button Pressed // hay noi cach khac khi nhap chuot vao
+                if(mouse.pressed){
+                    if(activeP == null){
+                        //if activeP is null, check if you can pick a piece
+                        for(Piece piece: simPieces){
+                            // neu mouse
+                            if(piece.color == currentColor &&
+                                    piece.col == mouse.x/board.SQUARE_SIZE &&
+                                    piece.row == mouse.y/board.SQUARE_SIZE){
+
+                                activeP = piece;
                             }
                         }
                     }
@@ -379,6 +439,12 @@ public class GamePanel extends JPanel implements Runnable{
                                     changePlayer();
                                 }
                             }
+                            // them lich su
+                            historyplay.add(GamePanel.deepCopyPieces(pieces));
+                            if (checkingP == null){
+                                historyCheckingP.add(null);
+                            }
+                            else historyCheckingP.add(checkingP.clone());
                         }
                         else {
                             // The move is not valid so reset everything
@@ -842,5 +908,59 @@ public class GamePanel extends JPanel implements Runnable{
             simPieces.clear();
         }
         castlingP = null;
+    }
+    public static ArrayList<Piece> deepCopyPieces(ArrayList<Piece> original) {
+        ArrayList<Piece> copy = new ArrayList<>();
+        for (Piece p : original) {
+            copy.add(p.clone());  
+        }
+        return copy;
+    }
+    
+    public JButton createUndoButton() {
+        JButton undo = new JButton("Undo");
+        undo.setBounds(830, 745, 100, 50);
+        
+        undo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        undo.setFont(new Font("SansSerif", Font.BOLD, 18));
+        undo.setFocusPainted(false);
+        undo.setBackground(new Color(118, 150, 83));
+        undo.setForeground(Color.WHITE);
+        
+        undo.addActionListener(e -> {
+            if (historyplay.size() >= 3) {
+                int step = historyplay.size() - 3;
+
+                // Reset active piece 
+                activeP = pieces.get(0);
+                canMove = false;
+                validSquare = false;
+
+                // Pieces từ history
+                pieces.clear();
+                pieces.addAll(deepCopyPieces(historyplay.get(step)));
+
+                simPieces.clear();
+                simPieces.addAll(deepCopyPieces(historyplay.get(step)));
+
+                // Remove last history step
+                historyplay.remove(historyplay.size() - 1);
+                historyplay.remove(historyplay.size() - 1);
+                historyCheckingP.remove(historyCheckingP.size() - 1);
+                historyCheckingP.remove(historyCheckingP.size() - 1);
+                checkingP = historyCheckingP.get(historyCheckingP.size() - 1);
+                
+                // xoa 2 nuoc hismoved
+                String[] parts = hisMoved.trim().split("\\s+");
+                if (parts.length <= 2) hisMoved = "";
+                else hisMoved = String.join(" ", java.util.Arrays.copyOf(parts, parts.length - 2));
+                
+                // Change color
+                //currentColor = (currentColor == WHITE) ? BLACK : WHITE;
+                update();
+                getInstance().repaint();
+            }
+        });
+        return undo;
     }
 }

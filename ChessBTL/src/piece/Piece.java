@@ -244,6 +244,31 @@ public class Piece {
         return false;
     }
     
+    @Override
+    public Piece clone() {
+        try {
+            return (Piece) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
+
+    public Piece(Piece other) {
+        // copy cac field chung
+        this.type = other.type;
+        this.color = other.color;
+        this.image = other.image;
+        this.x = other.x;
+        this.y = other.y;
+        this.col = other.col;
+        this.row = other.row;
+        this.preCol = other.preCol;
+        this.preRow = other.preRow;
+        this.moved = other.moved;
+        this.twoStepped = other.twoStepped;
+        this.hittingP = null; // no clone
+    }
+    
     public void draw(Graphics2D g2){
         g2.drawImage(image, x, y, board.SQUARE_SIZE, board.SQUARE_SIZE, null);
     }
