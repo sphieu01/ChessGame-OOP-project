@@ -106,11 +106,11 @@ public class GamePanel extends JPanel implements Runnable{
                     gameThread.interrupt();
                     gameThread = null;
                 }
+                //Về menu thì cài lại mode AI
                 modeAI = false;
                 ChessMainWindow parent = (ChessMainWindow) SwingUtilities.getWindowAncestor(GamePanel.this);
                 parent.backToMenu();
-                //Về menu thì cài lại mode AI
-                modeAI = false;
+                
             }
         });
 
