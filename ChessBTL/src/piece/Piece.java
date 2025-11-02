@@ -35,6 +35,7 @@ public class Piece {
     public BufferedImage getImage(String imagePath) {
         try {
             BufferedImage original = ImageIO.read(getClass().getResourceAsStream("/pieces/" + imagePath + ".png"));
+            
             BufferedImage resized = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = resized.createGraphics();
 
