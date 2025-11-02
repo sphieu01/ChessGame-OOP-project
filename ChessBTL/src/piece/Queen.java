@@ -40,5 +40,7 @@ public class Queen extends Piece{
         }
         return false;
     }
-
+    @Override
+    public Queen clone() { return new Queen(this); }
+    public Queen(Queen other) { super(other); }
 }

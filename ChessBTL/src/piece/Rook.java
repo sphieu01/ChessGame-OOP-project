@@ -31,5 +31,7 @@ public class Rook extends Piece{
         }
         return false;
     }
-
+    @Override
+    public Rook clone() { return new Rook(this); }
+    public Rook(Rook other) { super(other); }
 }

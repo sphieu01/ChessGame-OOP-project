@@ -59,5 +59,7 @@ public class Pawn extends Piece{
         }
         return false;
     }
-
+    @Override
+    public Pawn clone() { return new Pawn(this); }
+    public Pawn(Pawn other) { super(other); }
 }
