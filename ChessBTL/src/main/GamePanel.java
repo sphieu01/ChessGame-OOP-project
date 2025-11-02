@@ -105,7 +105,7 @@ public class GamePanel extends JPanel implements Runnable{
         add(playAgainButton);
 
         //Setting Clock
-        chessClock = new ChessClock(10); // .... phút mỗi bên
+        chessClock = new ChessClock(10); // .... giây mỗi bên
         clockTimer = new Timer(1000, e -> {
             chessClock.tick();
             repaint();
@@ -138,6 +138,16 @@ public class GamePanel extends JPanel implements Runnable{
                 if (gameThread != null && gameThread.isAlive()) {
                     gameThread.interrupt();
                     gameThread = null;
+                }
+
+                //  Dừng đồng hồ để không còn tick() nữa
+                if (clockTimer != null) {
+                    clockTimer.stop();
+                }
+
+                // Đặt lại đồng hồ nếu muốn reset khi quay lại menu
+                if (chessClock != null) {
+                    chessClock.reset();
                 }
 
                 ChessMainWindow parent = (ChessMainWindow) SwingUtilities.getWindowAncestor(GamePanel.this);
@@ -919,6 +929,10 @@ public class GamePanel extends JPanel implements Runnable{
     }
     private void notifyGameOver(String message) {
         SwingUtilities.invokeLater(() -> {
+
+            //Dừng time khi kết thúc
+            if (clockTimer != null) clockTimer.stop();
+
             // Lưu kết quả trước khi hỏi
             String result;
             if (gameover) {
@@ -939,6 +953,18 @@ public class GamePanel extends JPanel implements Runnable{
 
             if (choice == JOptionPane.YES_OPTION) {
                 resetGame();
+
+                // 🔁 Reset lại đồng hồ
+                if (chessClock != null) {
+                    chessClock.reset(); // đặt lại thời gian ban đầu
+                }
+
+                // ⏱️ Tạo timer mới (hoặc khởi động lại timer cũ)
+                if (clockTimer != null) {
+                    clockTimer.start();
+                }
+
+
                 lauchGame();
             } else {
                 parent.backToMenu();
