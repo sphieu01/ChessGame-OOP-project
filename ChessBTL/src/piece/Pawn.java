@@ -14,10 +14,10 @@ public class Pawn extends Piece{
         type = Type.PAWN;
 
         if(color == GamePanel.WHITE){
-            image = getImage("w-pawn");
+            image = getImage("/pieces/w-pawn");
         }
         else{
-            image = getImage("b-pawn");
+            image = getImage("/pieces/b-pawn");
         }
     }
     
