@@ -106,9 +106,11 @@ public class GamePanel extends JPanel implements Runnable{
                     gameThread.interrupt();
                     gameThread = null;
                 }
-
+                modeAI = false;
                 ChessMainWindow parent = (ChessMainWindow) SwingUtilities.getWindowAncestor(GamePanel.this);
                 parent.backToMenu();
+                //Về menu thì cài lại mode AI
+                modeAI = false;
             }
         });
 
@@ -150,7 +152,6 @@ public class GamePanel extends JPanel implements Runnable{
             sf.stopEngine();
         }
         hisMoved = "";
-
         setPieces();
         copyPieces(pieces, simPieces);
         historyplay.clear();
