@@ -35,6 +35,7 @@ public class ChessMainWindow extends JFrame {
         getContentPane().removeAll();
         revalidate();
         repaint();
+        main.GamePanel.modeAI = false;
 
         // Đóng cửa sổ cũ
         dispose();
