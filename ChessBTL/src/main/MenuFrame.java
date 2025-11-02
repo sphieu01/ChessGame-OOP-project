@@ -33,7 +33,7 @@ public class MenuFrame extends JFrame {
         title.setAlignmentX(Component.CENTER_ALIGNMENT); // căn chỉnh vị trí của component
         title.setBorder(BorderFactory.createEmptyBorder(40, 0, 40, 0)); // thêm padding 40px trên và dưới
 
-        JButton playBtn = createButton("Play");
+        JButton playBtn = createButton("2 Player");
         playBtn.addActionListener(e -> {
             soundManager.stop();
             dispose(); // đóng menu
@@ -41,8 +41,9 @@ public class MenuFrame extends JFrame {
         });
 
         // Choi voi Stockfish
-        JButton playWithStockfis = createButton("Play with Stockfis");
+        JButton playWithStockfis = createButton("1 Player");
         playWithStockfis.addActionListener(e -> {
+            soundManager.stop();
             dispose(); // đóng menu
             GamePanel.modeAI = true;
             new ChessMainWindow(); // mở game
@@ -93,9 +94,9 @@ public class MenuFrame extends JFrame {
         });
 
         panel.add(title);
-        panel.add(playBtn);
-        panel.add(Box.createVerticalStrut(15));
         panel.add(playWithStockfis);
+        panel.add(Box.createVerticalStrut(15));
+        panel.add(playBtn);
         panel.add(Box.createVerticalStrut(20)); //thêm một khoảng trống dọc (vertical space) có chiều cao 20 pixel
         panel.add(historyBtn);
         panel.add(Box.createVerticalStrut(20));
