@@ -15,7 +15,6 @@ import java.awt.event.ActionListener;
 import piece.Pawn;
 import piece.*;
 import javax.swing.Timer;
-import main.ChessClock;
 
 public class GamePanel extends JPanel implements Runnable{
     public static final int WIDTH = 1100;
