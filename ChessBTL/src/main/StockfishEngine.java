@@ -6,6 +6,7 @@ public class StockfishEngine {
     private BufferedWriter writer;
     private final String path = "C://code//java//BaiTapLon//ChessGame-OOP-project//ChessBTL//stockfish.exe.exe";
 
+
     public boolean startEngine() {
         try {
             engine = new ProcessBuilder(path).start();
