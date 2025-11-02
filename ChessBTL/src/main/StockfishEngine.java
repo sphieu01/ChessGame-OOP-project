@@ -4,9 +4,8 @@ public class StockfishEngine {
     private Process engine;
     private BufferedReader reader;
     private BufferedWriter writer;
-    private final String path = "C:\\Users\\ADMIN\\OneDrive - zvhmx\\Documents\\PTIT\\coding\\JAVA OOP\\chess game - pull from dinh p2\\ChessGame-OOP-project\\ChessBTL\\stockfish.exe";
+    private final String path = System.getProperty("user.dir") + "//ChessGame-OOP-project//ChessBTL//res//stockfish.exe";
 
-    
     public boolean startEngine() {
         try {
             engine = new ProcessBuilder(path).start();
