@@ -30,4 +30,7 @@ public class Knight extends Piece{
         }
         return false;
     }
+    @Override
+    public Knight clone() { return new Knight(this); }
+    public Knight(Knight other) { super(other); }
 }
