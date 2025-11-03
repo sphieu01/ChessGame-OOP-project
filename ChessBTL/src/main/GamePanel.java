@@ -237,6 +237,8 @@ public class GamePanel extends JPanel implements Runnable{
     }
 
     public void setPieces(){
+        historyplay.clear();
+        historyCheckingP.clear();
         // king
         pieces.add(new King(WHITE, 4 , 7));
         pieces.add(new King(BLACK, 4 , 0));
