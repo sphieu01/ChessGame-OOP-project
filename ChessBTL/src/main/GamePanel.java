@@ -892,15 +892,25 @@ public class GamePanel extends JPanel implements Runnable{
 
         if (gameover){
             String s = "";
-            if (currentColor == WHITE){
-                s = "WHITE WINS";
+            if (chessClock.isTimeOver()) {
+                if (chessClock.getWhiteTime() <= 0) {
+                    s = "BLACK WINS";
+                } else if (chessClock.getBlackTime() <= 0) {
+                     s = "WHITE WINS";
+                }
             }
             else{
-                s = "BLACK WINS";
+                if (currentColor == WHITE){
+                    s = "WHITE WINS";
+                }
+                else{
+                    s = "BLACK WINS";
+                }
             }
-            g2.setFont(new Font("Arial", Font.PLAIN, 90));
-            g2.setColor(Color.green);
-            g2.drawString(s, 200, 420);
+                g2.setFont(new Font("Arial", Font.PLAIN, 90));
+                g2.setColor(Color.green);
+                g2.drawString(s, 200, 420);
+            
         }
 
         if (stalemate){
