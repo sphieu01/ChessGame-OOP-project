@@ -25,6 +25,7 @@ public class GamePanel extends JPanel implements Runnable{
     Mouse mouse = new Mouse();
     JButton playAgainButton;
     JButton backToMenuButton;
+    JButton hint;
 
     //Pieces
     public static ArrayList<Piece> pieces = new ArrayList<>();
@@ -57,6 +58,8 @@ public class GamePanel extends JPanel implements Runnable{
     StockfishEngine sf = new StockfishEngine();
     String hisMoved = "";
     String lastBestMoved;
+    //hint
+    public static ArrayList<Point> hintList = new ArrayList<>();
 
     //db
     DatabaseManager dbManager = new DatabaseManager();
@@ -104,7 +107,7 @@ public class GamePanel extends JPanel implements Runnable{
         add(playAgainButton);
 
         //Setting Clock
-        chessClock = new ChessClock(10); // .... giây mỗi bên
+        chessClock = new ChessClock(1000); // .... giây mỗi bên
         clockTimer = new Timer(1000, e -> {
             chessClock.tick();
             repaint();
@@ -121,7 +124,23 @@ public class GamePanel extends JPanel implements Runnable{
 
         });
         clockTimer.start();
-
+        
+        hint = new JButton("Hint");
+        hint.setBounds(970, 745, 100, 50);
+        hint.setFont(new Font("Arial", Font.BOLD, 20));
+        hint.setBackground(new Color(118, 150, 83));
+        hint.setForeground(Color.WHITE);
+        hint.setFocusPainted(false);
+        hint.setBorderPainted(false);
+        
+        hint.addActionListener(e -> {
+            hintList.clear();
+            String hintMove = sf.getBestMove(hisMoved, 3);
+            hintList.add(new Point(hintMove.charAt(2) - 'a',8-(hintMove.charAt(3)-'0')));
+            hintList.add(new Point(hintMove.charAt(0) - 'a',8-(hintMove.charAt(1)-'0')));
+        });
+        
+        add(hint);
 
         backToMenuButton = new JButton("Menu");
         backToMenuButton.setBounds(970, 5, 100, 50);
@@ -151,6 +170,9 @@ public class GamePanel extends JPanel implements Runnable{
 
                 //Về menu thì cài lại mode AI
                 modeAI = false;
+                
+                //cài lại hint
+                hintList.clear();
 
                 ChessMainWindow parent = (ChessMainWindow) SwingUtilities.getWindowAncestor(GamePanel.this);
                 parent.backToMenu();
@@ -191,6 +213,8 @@ public class GamePanel extends JPanel implements Runnable{
         gameover = false;
         stalemate = false;
         currentColor = WHITE;
+        //reset hint
+        hintList.clear();
         //dong stockfish
         if(modeAI == true){
             sf.stopEngine();
@@ -282,6 +306,7 @@ public class GamePanel extends JPanel implements Runnable{
         double delta = 0;
         long lastTime = System.nanoTime();
         long currentTime;
+        sf.startEngine();
         //run mode AI
         if(modeAI == true){
             sf.startEngine();
@@ -561,6 +586,7 @@ public class GamePanel extends JPanel implements Runnable{
                 }
             }
         }
+        hintList.clear();
 
         //Switch clock turn
         chessClock.switchTurn();
@@ -920,6 +946,9 @@ public class GamePanel extends JPanel implements Runnable{
         }
         // HighLigher
         moveHighlighter.draw(g2);
+        
+        //draw hint
+        moveHighlighter.drawhint(g2);
 
         // --- CLOCK DISPLAY ---
         g2.setFont(new Font("Arial", Font.BOLD, 36));
@@ -1024,6 +1053,9 @@ public class GamePanel extends JPanel implements Runnable{
                 // Pieces từ history
                 pieces.clear();
                 pieces.addAll(deepCopyPieces(historyplay.get(step)));
+                
+                //reset hint
+                hintList.clear();
 
                 simPieces.clear();
                 simPieces.addAll(deepCopyPieces(historyplay.get(step)));
