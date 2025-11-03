@@ -149,8 +149,12 @@ public class GamePanel extends JPanel implements Runnable{
                     chessClock.reset();
                 }
 
+                //Về menu thì cài lại mode AI
+                modeAI = false;
+
                 ChessMainWindow parent = (ChessMainWindow) SwingUtilities.getWindowAncestor(GamePanel.this);
                 parent.backToMenu();
+                
             }
         });
 
@@ -192,7 +196,6 @@ public class GamePanel extends JPanel implements Runnable{
             sf.stopEngine();
         }
         hisMoved = "";
-
         setPieces();
         copyPieces(pieces, simPieces);
         historyplay.clear();
