@@ -5,7 +5,8 @@ public class StockfishEngine {
     private BufferedReader reader;
     private BufferedWriter writer;
     private final String path = System.getProperty("user.dir") +"\\res\\stockfish.exe";
-    
+
+
     public boolean startEngine() {
         try {
             engine = new ProcessBuilder(path).start();
