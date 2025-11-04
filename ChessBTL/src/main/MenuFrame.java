@@ -24,13 +24,13 @@ public class MenuFrame extends JFrame {
         soundManager.playLoop("res/sounds/menu_music.wav");
         
         JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(new Color(30, 30, 30));
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS)); // Thiết lập bố cục cho panel theo hướng dọc (các thành phần được xếp từ trên xuống dưới).
+        panel.setBackground(new Color(30, 30, 30)); // màu nền: xám đậm
 
-        JLabel title = new JLabel("♔ CHESS GAME ♚", SwingConstants.CENTER);
-        title.setFont(new Font("Segoe UI Symbol", Font.BOLD, 28)); 
+        JLabel title = new JLabel("♔ CHESS GAME ♚", SwingConstants.CENTER); // SwingConstants.CENTER: căn giữa nội dung của nhãn theo chiều ngang
+        title.setFont(new Font("Segoe UI Symbol", Font.BOLD, 28)); // phông chữ
         title.setForeground(Color.WHITE); //màu chữ
-        title.setAlignmentX(Component.CENTER_ALIGNMENT); // căn chỉnh vị trí của component
+        title.setAlignmentX(Component.CENTER_ALIGNMENT); // Căn giữa thành phần title theo trục ngang trong bố cục
         title.setBorder(BorderFactory.createEmptyBorder(40, 0, 40, 0)); // thêm padding 40px trên và dưới
 
         JButton playBtn = createButton("2 Player");
@@ -60,13 +60,13 @@ public class MenuFrame extends JFrame {
         
         // Nút bật/tắt nhạc
         JButton musicBtn = new JButton("Music: ON");
-        musicBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        musicBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
-        musicBtn.setFocusPainted(false);
-        musicBtn.setBackground(new Color(60, 60, 60));
-        musicBtn.setForeground(Color.WHITE);
-        musicBtn.setMaximumSize(new Dimension(180, 40));
-        musicBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        musicBtn.setAlignmentX(Component.CENTER_ALIGNMENT); // Căn giữa nút theo trục ngang trong bố cục
+        musicBtn.setFont(new Font("SansSerif", Font.BOLD, 14)); // Đặt phông chữ cho nút là SansSerif, kiểu đậm (BOLD), cỡ chữ 14
+        musicBtn.setFocusPainted(false); // Tắt viền sáng khi nút được chọn hoặc bấm
+        musicBtn.setBackground(new Color(60, 60, 60)); // màu nền
+        musicBtn.setForeground(Color.WHITE); // màu chữ
+        musicBtn.setMaximumSize(new Dimension(180, 40)); // Giới hạn kích thước tối đa của nút
+        musicBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // Thay đổi con trỏ chuột thành hình bàn tay khi di chuột qua nút
 
         musicBtn.addMouseListener(new MouseAdapter() {
             @Override
@@ -78,7 +78,7 @@ public class MenuFrame extends JFrame {
             public void mouseExited(MouseEvent e) {
                 musicBtn.setBackground(new Color(60, 60, 60));
             }
-        });
+        }); // đổi màu khi rê chuột vào và trở lại màu cũ khi rời chuột ra
 
         // Xử lý bật/tắt nhạc
         musicBtn.addActionListener(e -> {
@@ -95,9 +95,9 @@ public class MenuFrame extends JFrame {
 
         panel.add(title);
         panel.add(playWithStockfis);
-        panel.add(Box.createVerticalStrut(15));
-        panel.add(playBtn);
         panel.add(Box.createVerticalStrut(20)); //thêm một khoảng trống dọc (vertical space) có chiều cao 20 pixel
+        panel.add(playBtn);
+        panel.add(Box.createVerticalStrut(20)); 
         panel.add(historyBtn);
         panel.add(Box.createVerticalStrut(20));
         panel.add(infoBtn);
@@ -112,11 +112,11 @@ public class MenuFrame extends JFrame {
 
     private JButton createButton(String text) {
         JButton btn = new JButton(text);
-        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btn.setFont(new Font("SansSerif", Font.BOLD, 20));
-        btn.setFocusPainted(false); // không vẽ viền focus
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT); // Căn giữa nút theo trục ngang trong bố cục
+        btn.setFont(new Font("SansSerif", Font.BOLD, 20)); // phông chữ
+        btn.setFocusPainted(false); // Tắt viền sáng khi nút được chọn hoặc bấm
         btn.setBackground(new Color(80, 80, 80)); // màu nền
-        btn.setForeground(Color.WHITE);
+        btn.setForeground(Color.WHITE); // màu chữ
         btn.setMaximumSize(new Dimension(200, 50));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // đổi con trỏ chuột (mouse cursor) thành hình bàn tay
 
