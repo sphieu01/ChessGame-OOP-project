@@ -333,7 +333,7 @@ public class GamePanel extends JPanel implements Runnable{
         }
         else if (gameover == false && stalemate == false)  {
             if(modeAI == true && currentColor == BLACK){
-                String bestMove = sf.getBestMove(hisMoved, 1);
+                String bestMove = sf.getBestMove(hisMoved, 10);
                 lastBestMoved = new String(bestMove);
 //                System.out.println(bestMove);
                 //Lấy con cờ stockfish điều khiển
@@ -461,7 +461,7 @@ public class GamePanel extends JPanel implements Runnable{
                             copyPieces(simPieces, pieces);
 
 
-                            hisMoved += " " +activeP.tranferToStockfish();
+                            hisMoved += " " + activeP.tranferToStockfish();
 //                            System.out.println(hisMoved);
                             activeP.updatePosition();
 
@@ -591,6 +591,7 @@ public class GamePanel extends JPanel implements Runnable{
         //Switch clock turn
         chessClock.switchTurn();
         activeP = null;
+        System.out.println(hisMoved);
     }
 
     private boolean canPromote(){
@@ -611,10 +612,27 @@ public class GamePanel extends JPanel implements Runnable{
             for(Piece piece : promoPieces){
                 if(piece.col == mouse.x/Board.SQUARE_SIZE && piece.row == mouse.y/Board.SQUARE_SIZE){
                     switch (piece.type){
-                        case ROOK: simPieces.add(new Rook(currentColor, activeP.col, activeP.row)); break;
-                        case KNIGHT: simPieces.add(new Knight(currentColor, activeP.col, activeP.row)); break;
-                        case BISHOP: simPieces.add(new Bishop(currentColor, activeP.col, activeP.row)); break;
-                        case QUEEN: simPieces.add(new Queen(currentColor, activeP.col, activeP.row)); break;
+                        case ROOK: {
+                            simPieces.add(new Rook(currentColor, activeP.col, activeP.row));
+                            hisMoved+='r';
+                            break;
+                        }
+                        case KNIGHT: {
+                            simPieces.add(new Knight(currentColor, activeP.col, activeP.row)); 
+                            hisMoved+='k';
+                            break;
+                        }
+                        
+                        case BISHOP: {
+                            simPieces.add(new Bishop(currentColor, activeP.col, activeP.row)); 
+                            hisMoved+='b';
+                            break;
+                        }
+                        case QUEEN: {
+                            simPieces.add(new Queen(currentColor, activeP.col, activeP.row)); 
+                            hisMoved+='q';
+                            break;
+                        }                 
                         default: break;
                     }
                     simPieces.remove(activeP.getIndex());
