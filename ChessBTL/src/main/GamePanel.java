@@ -316,7 +316,7 @@ public class GamePanel extends JPanel implements Runnable{
         //run mode AI
         if(modeAI == true){
             sf.startEngine();
-            System.out.println("Đã khởi động Stockfish thành công!");
+            System.out.println("Khoi dong stockfish thanh cong!");
         }
 
         while(gameThread != null){
@@ -840,7 +840,7 @@ public class GamePanel extends JPanel implements Runnable{
         return false;
     }
 
-    private boolean isValidMove(Piece king, int colPlus, int rowPlus){
+    private boolean isValidMove(Piece king, int colPlus, int rowPlus){ // for the king
         boolean isValidMove = false;
 
         // temporary update king's position
@@ -888,9 +888,13 @@ public class GamePanel extends JPanel implements Runnable{
         Board.draw(g2);
 
         //Pieces
-        for(Piece p : simPieces){
-            p.draw(g2);
+        try{
+            for(Piece p : simPieces){
+                p.draw(g2);
+            }
         }
+        catch(Exception e){}
+        
 
         if(activeP != null) {
             if(canMove){
