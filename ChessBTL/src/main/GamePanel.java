@@ -15,6 +15,10 @@ import java.awt.event.ActionListener;
 import piece.Pawn;
 import piece.*;
 import javax.swing.Timer;
+import static main.Type.BISHOP;
+import static main.Type.KNIGHT;
+import static main.Type.QUEEN;
+import static main.Type.ROOK;
 
 public class GamePanel extends JPanel implements Runnable{
     public static final int WIDTH = 1100;
@@ -613,10 +617,27 @@ public class GamePanel extends JPanel implements Runnable{
             for(Piece piece : promoPieces){
                 if(piece.col == mouse.x/Board.SQUARE_SIZE && piece.row == mouse.y/Board.SQUARE_SIZE){
                     switch (piece.type){
-                        case ROOK: simPieces.add(new Rook(currentColor, activeP.col, activeP.row)); break;
-                        case KNIGHT: simPieces.add(new Knight(currentColor, activeP.col, activeP.row)); break;
-                        case BISHOP: simPieces.add(new Bishop(currentColor, activeP.col, activeP.row)); break;
-                        case QUEEN: simPieces.add(new Queen(currentColor, activeP.col, activeP.row)); break;
+                         case ROOK: {
+                            simPieces.add(new Rook(currentColor, activeP.col, activeP.row));
+                            hisMoved+='r';
+                            break;
+                        }
+                        case KNIGHT: {
+                            simPieces.add(new Knight(currentColor, activeP.col, activeP.row)); 
+                            hisMoved+='k';
+                            break;
+                        }
+                        
+                        case BISHOP: {
+                            simPieces.add(new Bishop(currentColor, activeP.col, activeP.row)); 
+                            hisMoved+='b';
+                            break;
+                        }
+                        case QUEEN: {
+                            simPieces.add(new Queen(currentColor, activeP.col, activeP.row)); 
+                            hisMoved+='q';
+                            break;
+                        }                 
                         default: break;
                     }
                     simPieces.remove(activeP.getIndex());
