@@ -339,7 +339,12 @@ public class GamePanel extends JPanel implements Runnable{
         }
         else if (gameover == false && stalemate == false)  {
             if(modeAI == true && currentColor == BLACK){
-                String bestMove = sf.getBestMove(hisMoved, 1);
+                 try {
+                    Thread.sleep(2000); // tạm dừng 10 giây (10000 milliseconds)
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                   }
+                String bestMove = sf.getBestMove(hisMoved, 10);
                 lastBestMoved = new String(bestMove);
 //                System.out.println(bestMove);
                 //Lấy con cờ stockfish điều khiển
@@ -930,7 +935,10 @@ public class GamePanel extends JPanel implements Runnable{
                     g2.drawString("is in check!", 840, 700);
                 }
             } else {
-                g2.drawString("Black's turn", 840, 250);
+                if(modeAI == true){
+                    g2.drawString("AI Thinking", 840, 250);
+                }
+                else g2.drawString("Black's turn", 840, 250);
                 if (checkingP != null && checkingP.color == WHITE){
                     g2.setColor(Color.red);
                     g2.drawString("The King", 840, 100);
